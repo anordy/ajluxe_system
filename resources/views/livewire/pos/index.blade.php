@@ -45,11 +45,11 @@
                     <tbody>
                     @forelse ($recent as $r)
                         <tr wire:key="rs{{ $r->id }}" class="cursor-pointer" onclick="Livewire.navigate('{{ route('invoices.show', $r) }}')">
-                            <td class="whitespace-nowrap"><div class="font-mono text-xs font-bold text-ink-900">{{ $r->number }}</div><div class="text-xs text-ink-400">{{ $r->date->isToday() ? 'Today' : $r->date->format('d M') }}, {{ $r->created_at->format('H:i') }}</div></td>
+                            <td class="whitespace-nowrap"><div class="font-mono text-xs font-bold text-ink-900">{{ $r->number }}</div><div class="text-xs text-ink-400">{{ $r->date?->isToday() ? 'Today' : $r->date?->format('d M') }}{{ $r->created_at ? ', '.$r->created_at->format('H:i') : '' }}</div></td>
                             <td><div class="font-medium">{{ $r->customerName() }}</div>@if ($r->customer?->phone) <div class="text-xs text-ink-400">{{ $r->customer->phone }}</div> @endif</td>
                             <td class="max-w-[260px] text-xs text-ink-500"><span class="line-clamp-2">{{ $r->items->map(fn ($i) => rtrim(rtrim(number_format($i->qty, 2), '0'), '.').' × '.$i->description)->implode(', ') }}</span></td>
                             <td class="whitespace-nowrap text-right font-semibold">{{ amount($r->grand_total) }}</td>
-                            <td><span class="{{ \App\Models\Invoice::STATUS_BADGES[$r->status] }}">{{ \App\Models\Invoice::STATUS_LABELS[$r->status] }}</span></td>
+                            <td><span class="{{ \App\Models\Invoice::STATUS_BADGES[$r->status] ?? 'badge-gray' }}">{{ \App\Models\Invoice::STATUS_LABELS[$r->status] ?? ucfirst((string) $r->status) }}</span></td>
                             <td class="text-right" onclick="event.stopPropagation()"><a href="{{ route('invoices.show', $r) }}" wire:navigate class="btn-icon" title="View sale" aria-label="View sale {{ $r->number }}"><x-icon name="eye" class="h-4 w-4" /></a></td>
                         </tr>
                     @empty

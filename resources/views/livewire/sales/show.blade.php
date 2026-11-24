@@ -11,10 +11,10 @@
             <a href="{{ route('invoices.index', $counter ? ['kind' => 'counter'] : ['kind' => 'garage']) }}" wire:navigate class="text-sm font-semibold text-ink-500 hover:text-ink-900">← {{ $counter ? 'All spare parts sales' : 'All garage invoices' }}</a>
             <div class="mt-2 flex flex-wrap items-center gap-3">
                 <h2 class="font-mono text-2xl font-extrabold text-ink-900">{{ $inv->number }}</h2>
-                <span class="{{ \App\Models\Invoice::STATUS_BADGES[$inv->status] }}">{{ \App\Models\Invoice::STATUS_LABELS[$inv->status] }}</span>
+                <span class="{{ \App\Models\Invoice::STATUS_BADGES[$inv->status] ?? 'badge-gray' }}">{{ \App\Models\Invoice::STATUS_LABELS[$inv->status] ?? ucfirst((string) $inv->status) }}</span>
                 <span class="badge-gray">{{ $channel }}</span>
             </div>
-            <p class="mt-1 text-sm text-ink-500">{{ $inv->date->format('l, d M Y') }} · sold by {{ $inv->creator?->name ?? '—' }} · recorded {{ $inv->created_at->format('d M Y, H:i') }}</p>
+            <p class="mt-1 text-sm text-ink-500">{{ $inv->date?->format('l, d M Y') }} · sold by {{ $inv->creator?->name ?? '—' }} · @if ($inv->created_at) recorded {{ $inv->created_at->format('d M Y, H:i') }} @endif</p>
         </div>
         <div class="flex flex-wrap gap-2">
             @if ($canPay && (float) $inv->balance > 0 && ! $cancelled)
@@ -45,7 +45,7 @@
                             <td>
                                 <div class="font-medium text-ink-900">{{ $it->description }}</div>
                                 <div class="text-xs text-ink-400">
-                                    @if ($it->part) <span class="font-mono">{{ $it->part->sku }}</span>@if ($it->part->part_number) · {{ $it->part->part_number }}@endif @if ($it->part->brand) · {{ $it->part->brand }}@endif
+                                    @if ($it->part) <span class="font-mono">{{ $it->part->sku }}</span>@if ($it->part->oem_no) · {{ $it->part->oem_no }}@endif @if ($it->part->brand) · {{ $it->part->brand }}@endif
                                     @elseif ($it->service_id) Service / labour @endif
                                     @if ($it->part_id && ($returned[$it->part_id] ?? 0) > 0)
                                         <span class="ml-1 font-semibold text-amber-700">· {{ rtrim(rtrim(number_format($returned[$it->part_id], 2), '0'), '.') }} returned</span>
@@ -117,7 +117,7 @@
                         <li class="flex items-center gap-3 px-5 py-3" wire:key="pay{{ $p->id }}">
                             <div class="min-w-0 flex-1">
                                 <p class="font-semibold {{ (float) $p->amount < 0 ? 'text-brand-600' : 'text-ink-900' }}">{{ money($p->amount) }} <span class="font-normal text-ink-500">· {{ $p->mode }}</span></p>
-                                <p class="text-xs text-ink-400"><span class="font-mono">{{ $p->number }}</span> · {{ $p->date->format('d M Y') }}@if ($p->reference) · ref {{ $p->reference }}@endif · {{ $p->creator?->name ?? '—' }}</p>
+                                <p class="text-xs text-ink-400"><span class="font-mono">{{ $p->number }}</span> · {{ $p->date?->format('d M Y') }}@if ($p->reference) · ref {{ $p->reference }}@endif · {{ $p->creator?->name ?? '—' }}</p>
                             </div>
                             <a href="{{ route('print.receipt', $p) }}" target="_blank" class="btn-icon" title="Print receipt" aria-label="Print receipt {{ $p->number }}"><x-icon name="printer" class="h-4 w-4" /></a>
                         </li>

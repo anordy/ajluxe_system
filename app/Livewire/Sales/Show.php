@@ -31,7 +31,7 @@ class Show extends Component
     public function render()
     {
         $inv = $this->invoice->load([
-            'items.part:id,sku,name,brand,unit,part_number',
+            'items.part:id,sku,name,brand,unit,oem_no',
             'payments' => fn ($q) => $q->orderBy('date')->orderBy('id'),
             'payments.creator:id,name',
             'customer', 'creator:id,name', 'jobCard.vehicle', 'returns.items',
