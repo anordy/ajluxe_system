@@ -45,4 +45,35 @@ class SaleShowTest extends TestCase
         $this->actingAs(User::factory()->role(User::MECHANIC)->create());
         $this->get(route('invoices.show', $inv))->assertForbidden();
     }
+
+    public function test_manager_can_undo_a_payment_entered_by_mistake(): void
+    {
+        $this->seed();
+        $this->actingAs(User::factory()->role(User::MANAGER)->create());
+        $p = Part::create(['sku' => 'S-2', 'name' => 'Wiper Blade', 'category' => 'Car Parts', 'unit' => 'Pcs',
+            'purchase_price' => 5000, 'selling_price' => 10000, 'is_active' => true]);
+        $p->forceFill(['stock_qty' => 5])->save();
+        $inv = app(SalesManager::class)->createCounterSale([['part_id' => $p->id, 'qty' => 1, 'rate' => 10000]], ['paid' => 10000, 'mode' => 'Cash']);
+        $this->assertSame(Invoice::PAID, $inv->fresh()->status);
+        $pay = $inv->payments()->first();
+
+        \Livewire\Livewire::test(\App\Livewire\Sales\Show::class, ['invoice' => $inv])
+            ->call('undoPayment', $pay->id)->assertDispatched('toast')
+            ->set('undoReason', 'Marked paid by mistake')->call('undoPayment', $pay->id)
+            ->assertSee('Undone by');
+
+        $inv->refresh();
+        $this->assertSame(Invoice::UNPAID, $inv->status);
+        $this->assertEquals(0, (float) $inv->paid);
+        $this->assertEquals(10000, (float) $inv->balance);
+        $this->assertSame(2, $inv->payments()->count());
+
+        \Livewire\Livewire::test(\App\Livewire\Sales\Show::class, ['invoice' => $inv])
+            ->set('undoReason', 'again')->call('undoPayment', $pay->id);
+        $this->assertSame(2, $inv->payments()->count());
+
+        $this->actingAs(User::factory()->role(User::STAFF)->create());
+        \Livewire\Livewire::test(\App\Livewire\Sales\Show::class, ['invoice' => $inv])
+            ->set('undoReason', 'x')->call('undoPayment', $pay->id)->assertForbidden();
+    }
 }

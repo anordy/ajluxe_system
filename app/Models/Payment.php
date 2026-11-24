@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /** Money received from a customer: an advance on a job card, or a payment on an invoice. */
 class Payment extends Model
 {
-    protected $fillable = ['number', 'invoice_id', 'job_card_id', 'customer_id', 'date', 'amount', 'mode', 'reference', 'note', 'created_by'];
+    protected $fillable = ['number', 'invoice_id', 'reverses_id', 'job_card_id', 'customer_id', 'date', 'amount', 'mode', 'reference', 'note', 'created_by'];
 
     protected function casts(): array
     {
@@ -28,6 +28,18 @@ class Payment extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class)->withTrashed();
+    }
+
+    /** The payment this entry undoes (set on the minus entry). */
+    public function reverses(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class, 'reverses_id');
+    }
+
+    /** The minus entry that undid this payment, if any. */
+    public function reversal(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Payment::class, 'reverses_id');
     }
 
     public function creator(): BelongsTo

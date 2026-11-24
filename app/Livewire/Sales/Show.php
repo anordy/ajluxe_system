@@ -22,6 +22,25 @@ class Show extends Component
         $this->invoice = $invoice;
     }
 
+    public string $undoReason = '';
+
+    /** Admin / manager: undo a payment that was entered by mistake. */
+    public function undoPayment(int $paymentId, \App\Services\JobCardManager $m): void
+    {
+        abort_unless(auth()->user()->hasRole('admin', 'manager'), 403);
+        $payment = $this->invoice->payments()->whereKey($paymentId)->firstOrFail();
+        try {
+            $m->reversePayment($payment, $this->undoReason);
+        } catch (\App\Exceptions\BusinessRuleException $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+
+            return;
+        }
+        $this->undoReason = '';
+        $this->invoice->refresh();
+        $this->dispatch('toast', message: "Payment {$payment->number} undone. The sale is now ".strtolower(\App\Models\Invoice::STATUS_LABELS[$this->invoice->status] ?? $this->invoice->status).'.', type: 'success');
+    }
+
     #[On('payment-saved')]
     public function refreshSale(): void
     {
@@ -33,7 +52,7 @@ class Show extends Component
         $inv = $this->invoice->load([
             'items.part:id,sku,name,brand,unit,oem_no',
             'payments' => fn ($q) => $q->orderBy('date')->orderBy('id'),
-            'payments.creator:id,name',
+            'payments.creator:id,name', 'payments.reversal:id,reverses_id,number',
             'customer', 'creator:id,name', 'jobCard.vehicle', 'returns.items',
         ]);
         $returned = [];

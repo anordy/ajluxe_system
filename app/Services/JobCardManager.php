@@ -319,6 +319,49 @@ class JobCardManager
         });
     }
 
+    /**
+     * Undo a payment entered by mistake. Nothing is deleted: a matching minus entry is
+     * added (so the day's cash and the audit trail stay honest) and the invoice goes
+     * back to unpaid / part paid.
+     */
+    public function reversePayment(Payment $payment, string $reason): Payment
+    {
+        $reason = trim($reason);
+        if ($reason === '') {
+            throw new BusinessRuleException('Say why the payment is being undone.');
+        }
+        if ((float) $payment->amount <= 0 || $payment->reverses_id) {
+            throw new BusinessRuleException('This entry is itself a refund or an undo, so it cannot be undone.');
+        }
+        if ($payment->reversal()->exists()) {
+            throw new BusinessRuleException("Payment {$payment->number} was already undone.");
+        }
+        $invoice = $payment->invoice;
+        if ($invoice?->status === Invoice::CANCELLED) {
+            throw new BusinessRuleException('This sale is cancelled, so its payments cannot be changed.');
+        }
+
+        return DB::transaction(function () use ($payment, $invoice, $reason) {
+            $undo = Payment::create([
+                'number'      => $payment->number.'-U',
+                'invoice_id'  => $payment->invoice_id,
+                'reverses_id' => $payment->id,
+                'job_card_id' => $payment->job_card_id,
+                'customer_id' => $payment->customer_id,
+                'date'        => now()->toDateString(),
+                'amount'      => -1 * (float) $payment->amount,
+                'mode'        => $payment->mode,
+                'reference'   => $payment->reference,
+                'note'        => 'Undo of '.$payment->number.': '.$reason,
+                'created_by'  => auth()->id(),
+            ]);
+            $invoice?->refreshPaid();
+            Audit::log('Payments', 'REVERSE', $payment->number, money($payment->amount).' undone'.($invoice ? ' on '.$invoice->number : '').'. Reason: '.$reason);
+
+            return $undo;
+        });
+    }
+
     // ------------------------------------------------------------------ helpers
 
     private function assertEditable(JobCard $job): void

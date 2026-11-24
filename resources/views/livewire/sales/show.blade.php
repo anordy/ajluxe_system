@@ -114,12 +114,30 @@
                 <div class="card-header"><h3 class="card-title">Payments</h3></div>
                 <ul class="divide-y divide-ink-100 text-sm">
                     @forelse ($inv->payments as $p)
-                        <li class="flex items-center gap-3 px-5 py-3" wire:key="pay{{ $p->id }}">
-                            <div class="min-w-0 flex-1">
-                                <p class="font-semibold {{ (float) $p->amount < 0 ? 'text-brand-600' : 'text-ink-900' }}">{{ money($p->amount) }} <span class="font-normal text-ink-500">· {{ $p->mode }}</span></p>
-                                <p class="text-xs text-ink-400"><span class="font-mono">{{ $p->number }}</span> · {{ $p->date?->format('d M Y') }}@if ($p->reference) · ref {{ $p->reference }}@endif · {{ $p->creator?->name ?? '—' }}</p>
+                        @php $undone = (bool) $p->reversal; $canUndo = $canManage && ! $cancelled && ! $undone && (float) $p->amount > 0; @endphp
+                        <li class="px-5 py-3" wire:key="pay{{ $p->id }}" x-data="{ undo: false }">
+                            <div class="flex items-center gap-3">
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-semibold {{ (float) $p->amount < 0 ? 'text-brand-600' : ($undone ? 'text-ink-400 line-through' : 'text-ink-900') }}">{{ money($p->amount) }} <span class="font-normal text-ink-500 no-underline">· {{ $p->mode }}</span></p>
+                                    <p class="text-xs text-ink-400"><span class="font-mono">{{ $p->number }}</span> · {{ $p->date?->format('d M Y') }}@if ($p->reference) · ref {{ $p->reference }}@endif · {{ $p->creator?->name ?? '—' }}</p>
+                                    @if ($undone) <p class="text-xs font-semibold text-amber-700">Undone by {{ $p->reversal->number }}</p> @endif
+                                    @if ($p->reverses_id && $p->note) <p class="text-xs text-ink-500">{{ $p->note }}</p> @endif
+                                </div>
+                                @if ($canUndo)
+                                    <button type="button" class="btn-icon" title="Undo this payment" aria-label="Undo payment {{ $p->number }}" x-on:click="undo = ! undo"><x-icon name="return" class="h-4 w-4" /></button>
+                                @endif
+                                <a href="{{ route('print.receipt', $p) }}" target="_blank" class="btn-icon" title="Print receipt" aria-label="Print receipt {{ $p->number }}"><x-icon name="printer" class="h-4 w-4" /></a>
                             </div>
-                            <a href="{{ route('print.receipt', $p) }}" target="_blank" class="btn-icon" title="Print receipt" aria-label="Print receipt {{ $p->number }}"><x-icon name="printer" class="h-4 w-4" /></a>
+                            @if ($canUndo)
+                                <form x-show="undo" x-cloak class="mt-3 space-y-2 rounded-lg bg-amber-50 p-3" wire:submit="undoPayment({{ $p->id }})">
+                                    <p class="text-xs text-amber-900">Use this when the payment was never actually received. {{ money($p->amount) }} is taken off and the sale goes back to unpaid or part paid. The original entry stays on record.</p>
+                                    <input type="text" class="input" wire:model="undoReason" placeholder="Why? e.g. marked paid by mistake" required maxlength="200">
+                                    <div class="flex justify-end gap-2">
+                                        <button type="button" class="btn-light btn-sm" x-on:click="undo = false">Keep payment</button>
+                                        <button type="submit" class="btn-primary btn-sm" wire:loading.attr="disabled" wire:target="undoPayment">Undo payment</button>
+                                    </div>
+                                </form>
+                            @endif
                         </li>
                     @empty
                         <li class="px-5 py-6 text-center text-ink-400">No payment yet.</li>
