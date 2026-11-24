@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-/** The public website in English or Kiswahili; the staff portal stays English. */
+/** The public website in English or Swahili; the staff portal stays English. */
 class LocalizationTest extends TestCase
 {
     use RefreshDatabase;
@@ -17,15 +17,15 @@ class LocalizationTest extends TestCase
     public function test_visitor_switches_the_website_to_kiswahili(): void
     {
         $this->seed();
-        $this->get('/')->assertOk()->assertSee('Find parts for your car')->assertSee('Kiswahili')->assertSee('<html lang="en">', false);
+        $this->get('/')->assertOk()->assertSee('Find parts for your car')->assertSee('Swahili')->assertSee('<html lang="en">', false);
 
         $this->from('/shop')->get(route('shop.language', 'sw'))->assertRedirect('/shop')->assertCookie('shop_locale', 'sw', false);
         $this->get('/')->assertOk()->assertSee('<html lang="sw">', false)
-            ->assertSee('Tafuta vipuri vya gari lako')        // database text, Kiswahili copy
+            ->assertSee('Tafuta vipuri vya gari lako')        // database text, Swahili copy
             ->assertSee('Onyesha vipuri vinavyofaa')          // template text
             ->assertSee('Hupati gari lako?')
             ->assertDontSee('Show parts that fit');
-        // banners: the Kiswahili wording, English when none was written
+        // banners: the Swahili wording, English when none was written
         \App\Models\SiteBanner::create(['layout' => 'text', 'title' => 'Big brake sale', 'title_sw' => 'Ofa kubwa ya breki', 'tone' => 'red', 'is_active' => true]);
         \App\Models\SiteBanner::create(['layout' => 'text', 'title' => 'Wipers for the rains', 'tone' => 'ink', 'is_active' => true]);
         $this->get('/')->assertSee('Ofa kubwa ya breki')->assertDontSee('Big brake sale')->assertSee('Wipers for the rains');
@@ -71,7 +71,7 @@ class LocalizationTest extends TestCase
 
         $this->withSession(['shop_locale' => 'sw'])->get('/')
             ->assertSee('Vipuri halisi kwa gari lako')
-            ->assertSee(setting('web_topbar'));   // empty Kiswahili box → English text
-        $this->get(route('website.texts'))->assertOk()->assertSee('Kiswahili');
+            ->assertSee(setting('web_topbar'));   // empty Swahili box → English text
+        $this->get(route('website.texts'))->assertOk()->assertSee('Swahili');
     }
 }

@@ -131,6 +131,15 @@ class WebsiteContentTest extends TestCase
         $slide = substr($html, strpos($html, 'alt="December tyre sale"') - 600, 700);
         $this->assertStringNotContainsString('Shop now', $slide);
 
+        // the editor says plainly whether the banner is on the website
+        Livewire::test(Banners::class)->call('create')->set('form.title', 'Hidden promo')->set('form.is_active', false)->call('save')
+            ->assertDispatched('toast', message: 'Banner saved, but it is switched off, so it is not on the website. Use the ✓ button to switch it on.', type: 'warning');
+        Livewire::test(Banners::class)->call('create')->set('form.title', 'Coming soon')->set('form.starts_on', today()->addDays(3)->toDateString())->call('save')
+            ->assertDispatched('toast', type: 'success');
+        Livewire::test(Banners::class)->call('create')->set('form.title', 'Live promo')->call('save')
+            ->assertDispatched('toast', message: 'Banner saved and live on the website.', type: 'success');
+        $this->get('/')->assertSee('Live promo')->assertDontSee('Hidden promo')->assertDontSee('Coming soon');
+
         // a design needs no name, title, text or button at all
         Livewire::test(Banners::class)->call('create')->set('form.layout', 'image')->set('form.title', '')->set('photoData', $jpg)
             ->call('save')->assertHasNoErrors();

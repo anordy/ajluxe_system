@@ -6,12 +6,12 @@ use Closure;
 use Illuminate\Http\Request;
 
 /**
- * Website language: English (default) or Kiswahili, chosen with the switch in the header.
+ * Website language: English (default) or Swahili, chosen in the language dropdown in the header.
  * Only the public website uses it; the staff portal stays in English.
  */
 class SetShopLocale
 {
-    public const LOCALES = ['en' => 'English', 'sw' => 'Kiswahili'];
+    public const LOCALES = ['en' => 'English', 'sw' => 'Swahili'];
 
     public function handle(Request $request, Closure $next)
     {

@@ -56,12 +56,12 @@
     "src": "node_modules/@fontsource-variable/inter/files/inter-vietnamese-wght-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DRdb2S4J.css",
+    "file": "assets/app-CdC1dLqM.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/css/shop.css": {
-    "file": "assets/shop-DSpozv5Y.css",
+    "file": "assets/shop-DeuMQrbY.css",
     "src": "resources/css/shop.css",
     "isEntry": true
   },

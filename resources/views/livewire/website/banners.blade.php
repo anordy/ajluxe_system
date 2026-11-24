@@ -75,7 +75,7 @@
             </div>
             <div><label class="label">Text</label><textarea wire:model="form.text" rows="2" maxlength="300" class="input" placeholder="One or two short sentences."></textarea></div>
             <details class="rounded-lg border border-ink-100 p-4" @if (($form['title_sw'] ?? '') !== '') open @endif>
-                <summary class="cursor-pointer text-sm font-semibold text-ink-800">Kiswahili wording <span class="font-normal text-ink-400">(optional — visitors who choose Kiswahili see this; empty boxes show the English)</span></summary>
+                <summary class="cursor-pointer text-sm font-semibold text-ink-800">Swahili wording <span class="font-normal text-ink-400">(optional — visitors who choose Swahili see this; empty boxes show the English)</span></summary>
                 <div class="mt-4 space-y-4">
                     <div class="grid gap-4 sm:grid-cols-[1fr_2fr]">
                         <div><label class="label">Small line above</label><input wire:model="form.kicker_sw" maxlength="80" class="input" placeholder="Ofa ya wiki"></div>
@@ -128,11 +128,19 @@
                 <div><label class="label">Show from</label><input type="date" wire:model="form.starts_on" class="input"></div>
                 <div><label class="label">Show until</label><input type="date" wire:model="form.ends_on" class="input">@error('form.ends_on') <p class="error">{{ $message }}</p> @enderror</div>
             </div>
-            <label class="flex items-center gap-2 text-sm text-ink-700"><input type="checkbox" wire:model="form.is_active" class="rounded border-ink-300 text-brand-500 focus:ring-brand-400"> Switched on</label>
+            <div x-data="{ on: @js((bool) ($form['is_active'] ?? true)) }" wire:key="bn-on-{{ $editingId ?? 'new' }}" class="rounded-lg border p-3" :class="on ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'">
+                <label class="flex items-center gap-2 text-sm font-semibold" :class="on ? 'text-emerald-800' : 'text-amber-900'">
+                    <input type="checkbox" wire:model="form.is_active" @change="on = $event.target.checked" class="rounded border-ink-300 text-emerald-600 focus:ring-emerald-500">
+                    <span x-text="on ? 'Switched on — shown on the website' : 'Switched off — NOT shown on the website'"></span>
+                </label>
+                <p x-show="! on" x-cloak class="mt-1 pl-6 text-xs text-amber-800">Tick this box to show the banner on the home page.</p>
+            </div>
         </form>
         <x-slot:footer>
             <button type="button" class="btn-light" @click="open = false">Cancel</button>
-            <button type="submit" form="bannerForm" class="btn-primary" wire:loading.attr="disabled">Save Banner</button>
+            <button type="submit" form="bannerForm" class="btn-primary" wire:loading.attr="disabled" wire:target="save">
+                <span wire:loading.remove wire:target="save">Save Banner</span><span wire:loading wire:target="save">Saving…</span>
+            </button>
         </x-slot:footer>
     </x-modal>
 </div>

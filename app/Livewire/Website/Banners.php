@@ -127,7 +127,16 @@ class Banners extends Component
             $b->update(['image_path' => $photo]);
         }
         Audit::log('Website', $this->editingId ? 'BANNER_UPDATE' : 'BANNER_CREATE', $b->title);
-        $this->toast($this->editingId ? 'Banner updated.' : 'Banner added to the website.');
+        // say plainly whether visitors will see it now
+        $b->refresh();
+        $msg = match (true) {
+            ! $b->is_active => ['Banner saved, but it is switched off, so it is not on the website. Use the ✓ button to switch it on.', 'warning'],
+            $b->starts_on && $b->starts_on->isFuture() => ['Banner saved. It will appear on the website on '.$b->starts_on->format('d M Y').'.', 'success'],
+            $b->ends_on && $b->ends_on->lt(today()) => ['Banner saved, but its "Show until" date has passed, so it is not on the website.', 'warning'],
+            ! $b->isLive() => ['Banner saved, but it cannot show yet: '.($b->isImageOnly() && ! $b->image_path ? 'it has no picture.' : 'its part is not on the website.'), 'warning'],
+            default => ['Banner saved and live on the website.', 'success'],
+        };
+        $this->toast(...$msg);
         $this->showForm = false;
         $this->reset(['photoData', 'removePhoto']);
     }

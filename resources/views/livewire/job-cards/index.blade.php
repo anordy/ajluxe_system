@@ -44,7 +44,7 @@
     <div class="card overflow-hidden">
         <div class="overflow-x-auto">
             <table class="table">
-                <thead><tr><th>Job card</th><th>Vehicle</th><th>Customer</th><th>Mechanic</th><th>Status</th><th class="text-right">Total</th><th>Invoice</th></tr></thead>
+                <thead><tr><th>Job card</th><th>Vehicle</th><th>Customer</th><th>Mechanic</th><th>Status</th><th class="text-right">Total</th><th>Invoice</th><th class="text-right">Actions</th></tr></thead>
                 <tbody>
                 @forelse ($jobs as $j)
                     <tr wire:key="j{{ $j->id }}" class="cursor-pointer" onclick="Livewire.navigate('{{ route('job-cards.show', $j) }}')">
@@ -71,9 +71,18 @@
                                 <span class="{{ \App\Models\Invoice::STATUS_BADGES[$j->invoice->status] }} ml-1">{{ \App\Models\Invoice::STATUS_LABELS[$j->invoice->status] }}</span>
                             @else <span class="text-xs text-ink-300">—</span> @endif
                         </td>
+                        <td class="text-right" onclick="event.stopPropagation()">
+                            <div class="inline-flex items-center gap-1">
+                                <a href="{{ route('job-cards.show', $j) }}" wire:navigate class="btn-icon" title="View job card" aria-label="View job card {{ $j->number }}"><x-icon name="eye" class="h-4 w-4" /></a>
+                                <a href="{{ route('print.job-card', $j) }}" target="_blank" class="btn-icon" title="Print job card" aria-label="Print job card {{ $j->number }}"><x-icon name="printer" class="h-4 w-4" /></a>
+                                @if ($j->invoice)
+                                    <a href="{{ route('print.invoice', $j->invoice) }}" target="_blank" class="btn-icon" title="Print invoice {{ $j->invoice->number }}" aria-label="Print invoice {{ $j->invoice->number }}"><x-icon name="doc" class="h-4 w-4" /></a>
+                                @endif
+                            </div>
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="py-12 text-center text-ink-400">
+                    <tr><td colspan="8" class="py-12 text-center text-ink-400">
                         No job cards here. @if ($canCreate) <a href="{{ route('job-cards.create') }}" wire:navigate class="font-semibold text-brand-600 hover:underline">Open a new job card</a> @endif
                     </td></tr>
                 @endforelse

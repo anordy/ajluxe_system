@@ -61,7 +61,7 @@ class Texts extends Component
             $names["form.$k"] = $label;
             if (self::hasSwahili($k)) {
                 $rules["form.{$k}_sw"] = ['nullable', 'string', 'max:'.(int) ceil($max * 1.4)];   // Swahili runs a little longer
-                $names["form.{$k}_sw"] = $label.' (Kiswahili)';
+                $names["form.{$k}_sw"] = $label.' (Swahili)';
             }
         }
         $rules['form.web_hero_title'][0] = 'required';

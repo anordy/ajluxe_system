@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Dashboard' }} · {{ setting('business_name') }}</title>
-    <link rel="icon" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" href="{{ asset('favicon-32.png') }}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{{ asset('icon-192.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -125,16 +128,16 @@
 </div>
 
 {{-- ================= TOASTS ================= --}}
-<div x-data="{ items: [], add(d) { const id = Date.now() + Math.random(); this.items.push({ id, ...d }); setTimeout(() => this.items = this.items.filter(i => i.id !== id), 4000) } }"
+<div x-data="{ items: [], add(d) { const id = Date.now() + Math.random(); this.items.push({ id, ...d }); setTimeout(() => this.items = this.items.filter(i => i.id !== id), d.type === 'warning' ? 9000 : 4000) } }"
      x-init="@if (session('toast')) add(@js(session('toast'))) @endif"
      @toast.window="add($event.detail)"
      class="pointer-events-none fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2">
     <template x-for="t in items" :key="t.id">
         <div x-transition class="pointer-events-auto flex items-start gap-3 rounded-xl border bg-white p-4 shadow-lg"
-             :class="t.type === 'error' ? 'border-brand-200' : 'border-ink-100'">
+             :class="t.type === 'error' ? 'border-brand-200' : (t.type === 'warning' ? 'border-amber-300 bg-amber-50' : 'border-ink-100')">
             <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-white"
-                  :class="t.type === 'error' ? 'bg-brand-500' : 'bg-emerald-500'">
-                <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path :d="t.type === 'error' ? 'M6 6l12 12M18 6 6 18' : 'M5 12.5 10 17l9-10'"/></svg>
+                  :class="t.type === 'error' ? 'bg-brand-500' : (t.type === 'warning' ? 'bg-amber-500' : 'bg-emerald-500')">
+                <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path :d="t.type === 'error' ? 'M6 6l12 12M18 6 6 18' : (t.type === 'warning' ? 'M12 7v6M12 17h.01' : 'M5 12.5 10 17l9-10')"/></svg>
             </span>
             <p class="text-sm font-medium text-ink-800" x-text="t.message"></p>
         </div>

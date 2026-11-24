@@ -11,7 +11,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ isset($title) ? $title.' | ' : '' }}{{ setting('business_name') }} — {{ __('Spare parts & garage') }}</title>
     <meta name="description" content="{{ webtext('business_tagline') }}">
-    <link rel="icon" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" href="{{ asset('favicon-32.png') }}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{{ asset('icon-192.png') }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     @vite(['resources/css/shop.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -26,15 +29,25 @@
                 @if (setting('opening_hours')) <span>{{ opening_hours() }}</span> @endif
                 @if (setting('phone')) <a href="tel:{{ preg_replace('/\s+/', '', setting('phone')) }}" class="font-semibold text-white hover:underline">{{ setting('phone') }}</a> @endif
                 <button type="button" @click="Livewire.dispatch('open-car-request')" class="hover:text-white">{{ __('Can\'t find your car?') }}</button>
-                <span class="flex items-center gap-1" aria-label="{{ __('Language') }}">
-                    @foreach (\App\Http\Middleware\SetShopLocale::LOCALES as $code => $name)
-                        @if (app()->getLocale() === $code)
-                            <span class="rounded bg-white/15 px-2 py-0.5 font-semibold text-white" aria-current="true">{{ $name }}</span>
-                        @else
-                            <a href="{{ route('shop.language', $code) }}" lang="{{ $code }}" hreflang="{{ $code }}" class="rounded px-2 py-0.5 hover:bg-white/10 hover:text-white">{{ $name }}</a>
-                        @endif
-                    @endforeach
-                </span>
+                @php $langs = \App\Http\Middleware\SetShopLocale::LOCALES; $here = app()->getLocale(); @endphp
+                <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false" @click.outside="open = false">
+                    <button type="button" @click="open = !open" :aria-expanded="open" aria-haspopup="true" aria-label="{{ __('Language') }}: {{ $langs[$here] ?? 'English' }}"
+                            class="flex items-center gap-2 rounded px-2 py-0.5 font-semibold text-white hover:bg-white/10">
+                        <x-shop.flag :code="$here" /> {{ $langs[$here] ?? 'English' }}
+                        <svg class="h-3 w-3 transition-transform" :class="open && 'rotate-180'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                    <ul x-show="open" x-cloak x-transition.opacity.duration.100ms class="absolute right-0 top-full z-50 mt-1 w-40 overflow-hidden rounded-md bg-white py-1 text-[14px] text-[#16181B] shadow-lg ring-1 ring-black/10">
+                        @foreach ($langs as $code => $name)
+                            <li>
+                                <a href="{{ route('shop.language', $code) }}" lang="{{ $code }}" hreflang="{{ $code }}" @if ($code === $here) aria-current="true" @endif
+                                   class="flex items-center gap-2.5 px-3 py-2 hover:bg-[#F4F5F7] {{ $code === $here ? 'font-semibold' : '' }}">
+                                    <x-shop.flag :code="$code" /> <span class="flex-1">{{ $name }}</span>
+                                    @if ($code === $here) <svg class="h-4 w-4 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg> @endif
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -135,7 +148,7 @@
                 </div>
                 <div class="flex gap-2 text-sm" aria-label="{{ __('Language') }}">
                     @foreach (\App\Http\Middleware\SetShopLocale::LOCALES as $code => $name)
-                        <a href="{{ route('shop.language', $code) }}" lang="{{ $code }}" class="flex-1 rounded-md border px-3 py-2 text-center font-semibold {{ app()->getLocale() === $code ? 'border-white bg-white text-[#16181B]' : 'border-white/30 text-white' }}">{{ $name }}</a>
+                        <a href="{{ route('shop.language', $code) }}" lang="{{ $code }}" class="flex flex-1 items-center justify-center gap-2 rounded-md border px-3 py-2 font-semibold {{ app()->getLocale() === $code ? 'border-white bg-white text-[#16181B]' : 'border-white/30 text-white' }}"><x-shop.flag :code="$code" /> {{ $name }}</a>
                     @endforeach
                 </div>
                 <p class="text-sm text-white/60">{{ opening_hours() }}@if (setting('phone')) · <a href="tel:{{ preg_replace('/\s+/', '', setting('phone')) }}" class="text-white">{{ setting('phone') }}</a>@endif</p>
