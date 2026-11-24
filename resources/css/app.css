@@ -1,0 +1,61 @@
+/* AJ LUXE AUTO — management system. Fonts are bundled, no external requests. */
+@import '@fontsource-variable/inter/index.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- AJ LUXE AUTO design system ---------- */
+@layer base {
+    html { -webkit-font-smoothing: antialiased; }
+    body { @apply bg-ink-50 text-ink-800; }
+    [x-cloak] { display: none !important; }
+}
+
+@layer components {
+    /* buttons */
+    .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition
+                  focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50; }
+    .btn-primary { @apply btn bg-brand-500 text-white hover:bg-brand-600 focus:ring-brand-400; }
+    .btn-dark    { @apply btn bg-ink-900 text-white hover:bg-ink-800 focus:ring-ink-400; }
+    .btn-light   { @apply btn border border-ink-200 bg-white text-ink-700 hover:bg-ink-50 focus:ring-ink-300; }
+    .btn-danger  { @apply btn bg-white text-brand-600 border border-brand-200 hover:bg-brand-50 focus:ring-brand-300; }
+    .btn-sm      { @apply px-3 py-1.5 text-xs; }
+    .btn-icon    { @apply inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink-500 hover:bg-ink-100 hover:text-ink-900; }
+
+    /* forms */
+    .label  { @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-500; }
+    .input  { @apply block w-full rounded-lg border-ink-200 bg-white text-sm text-ink-900 shadow-sm
+                     placeholder:text-ink-300 focus:border-ink-900 focus:ring-ink-900; }
+    .error  { @apply mt-1 text-xs font-medium text-brand-600; }
+    .hint   { @apply mt-1 text-xs text-ink-400; }
+
+    /* surfaces */
+    .card        { @apply rounded-xl border border-ink-100 bg-white shadow-sm; }
+    .card-header { @apply flex items-center justify-between gap-3 border-b border-ink-100 px-5 py-4; }
+    .card-title  { @apply text-sm font-bold uppercase tracking-wide text-ink-900; }
+    .card-body   { @apply p-5; }
+
+    /* tables */
+    .table      { @apply min-w-full text-sm; }
+    /* :where() keeps these weak so utilities like text-right / w-full on a cell always win */
+    .table :where(th) { @apply whitespace-nowrap bg-ink-50 px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-ink-500; }
+    .table :where(td) { @apply border-t border-ink-100 px-4 py-3 align-middle; }
+    .table td.text-right, .table th.text-right { @apply whitespace-nowrap; }
+    .table tr:hover td { @apply bg-ink-50/60; }
+
+    /* badges */
+    .badge       { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold; }
+    .badge-green { @apply badge bg-emerald-50 text-emerald-700; }
+    .badge-blue  { @apply badge bg-blue-50 text-blue-700; }
+    .badge-red   { @apply badge bg-brand-50 text-brand-700; }
+    .badge-gray  { @apply badge bg-ink-100 text-ink-600; }
+    .badge-dark  { @apply badge bg-ink-900 text-white; }
+    .badge-amber { @apply badge bg-amber-50 text-amber-700; }
+
+    /* sidebar */
+    .nav-section { @apply mt-4 mb-1 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-500; }
+    .nav-link    { @apply flex items-center gap-3 rounded-lg px-3 py-[7px] text-sm font-medium text-ink-300 transition hover:bg-white/5 hover:text-white; }
+    .nav-link.active { @apply bg-white/10 text-white shadow-[inset_3px_0_0_0_theme(colors.brand.500)]; }
+    .nav-soon    { @apply flex cursor-default items-center gap-3 rounded-lg px-3 py-[7px] text-sm font-medium text-ink-600; }
+}

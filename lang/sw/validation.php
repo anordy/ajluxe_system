@@ -1,0 +1,75 @@
+<?php
+
+/*
+| Kiswahili form messages for the public website (rules the website forms use).
+| Anything not listed here falls back to Laravel's English message.
+*/
+return [
+    'accepted'       => ':attribute lazima ikubaliwe.',
+    'after_or_equal' => ':attribute lazima iwe tarehe ya :date au baadaye.',
+    'array'          => ':attribute si sahihi.',
+    'boolean'        => ':attribute lazima iwe ndiyo au hapana.',
+    'confirmed'      => ':attribute hailingani.',
+    'date'           => ':attribute si tarehe sahihi.',
+    'digits'         => ':attribute lazima iwe na tarakimu :digits.',
+    'digits_between' => ':attribute lazima iwe na tarakimu kati ya :min na :max.',
+    'email'          => ':attribute lazima iwe barua pepe sahihi.',
+    'exists'         => ':attribute uliyochagua si sahihi.',
+    'in'             => ':attribute uliyochagua si sahihi.',
+    'integer'        => ':attribute lazima iwe namba kamili.',
+    'max'            => [
+        'numeric' => ':attribute isizidi :max.',
+        'string'  => ':attribute isizidi herufi :max.',
+        'array'   => ':attribute isizidi vitu :max.',
+        'file'    => ':attribute isizidi kilobaiti :max.',
+    ],
+    'min'            => [
+        'numeric' => ':attribute iwe angalau :min.',
+        'string'  => ':attribute iwe na angalau herufi :min.',
+        'array'   => ':attribute iwe na angalau vitu :min.',
+        'file'    => ':attribute iwe angalau kilobaiti :min.',
+    ],
+    'numeric'          => ':attribute lazima iwe namba.',
+    'regex'            => 'Muundo wa :attribute si sahihi.',
+    'required'         => ':attribute inahitajika.',
+    'required_if'      => ':attribute inahitajika.',
+    'required_with'    => ':attribute inahitajika.',
+    'required_without' => ':attribute inahitajika.',
+    'same'             => ':attribute na :other lazima zilingane.',
+    'string'           => ':attribute lazima iwe maandishi.',
+    'unique'           => ':attribute tayari imetumika.',
+
+    'password' => [
+        'letters'       => ':attribute lazima iwe na angalau herufi moja.',
+        'mixed'         => ':attribute lazima iwe na herufi kubwa na ndogo.',
+        'numbers'       => ':attribute lazima iwe na angalau namba moja.',
+        'symbols'       => ':attribute lazima iwe na angalau alama moja.',
+        'uncompromised' => ':attribute hii imeonekana kwenye uvujaji wa data. Chagua nyingine.',
+    ],
+
+    'attributes' => [
+        'budget'            => 'Bajeti',
+        'contact_phone'     => 'Namba ya simu',
+        'delivery_address'  => 'Anwani ya kuletewa',
+        'description'       => 'Maelezo',
+        'email'             => 'Barua pepe',
+        'engine_code'       => 'Code ya injini',
+        'fulfilment'        => 'Njia ya kupata',
+        'item_type'         => 'Unachohitaji',
+        'login'             => 'Simu au barua pepe',
+        'make'              => 'Aina ya gari',
+        'model'             => 'Modeli',
+        'name'              => 'Jina',
+        'notes'             => 'Maelezo',
+        'parts'             => 'Vipuri',
+        'password'          => 'Nenosiri',
+        'payment_method'    => 'Njia ya malipo',
+        'payment_reference' => 'Namba ya muamala',
+        'phone'             => 'Namba ya simu',
+        'quantity'          => 'Idadi',
+        'vin'               => 'Namba ya chasisi',
+        'year'              => 'Mwaka',
+        'condition'         => 'Hali',
+        'country'           => 'Nchi',
+    ],
+];

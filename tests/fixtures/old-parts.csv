@@ -1,0 +1,8 @@
+PartID,PartName,Brand,Category,VehicleMake,VehicleModel,OEMNumber,Unit,Location,PurchasePrice,SellingPrice,MRP,TaxPct,OpeningStock,CurrentStock,ReorderLevel,Status,ImageURL,Notes,CreatedAt,UpdatedAt
+PRT-0001,Engine Oil 5W-30 5L,Atlantic,Lubricants,Universal,,,Litre,5,112000,130000,150000,0,4,17,3,Active,,"Oil for Universal Cars Subaru,Mitsubish,Ist Etc",2026-11-14 1:34:53,2026-11-14 1:57:31
+PRT-0002,Engine Oil 5W-30 1L,Atlantic,Lubricants,Universal,,,Litre,1,23000,30000,35000,0,12,16,3,Active,,Oi for universal car,2026-11-14 1:37:53,2026-11-14 1:57:48
+PRT-0006,Hydraulic CVT TC,Toyota,Lubricants,Toyota,,,Litre,4,50000,80000,100000,0,6,10,3,Active,,TC CVT Fluid,2026-11-14 13:42:02,2026-11-14 13:42:02
+PRT-0010,Chloride Oxide N50 R,Chloride Oxide,Batteries,Universal,,M50D26,Pcs,3,140000,170000,200000,0,3,6,1,Active,,,2026-11-14 14:03:16,2026-11-14 14:03:16
+PRT-0013,Oil Filter-YZZE1,Toyota,Filters,Toyota,,90915-YZZE1,Pcs,1,2400,10000,15000,0,20,35,5,Active,,"IST, VITS, RAUM, HARRIER, KLUGER, COROLLA,RAV4",2026-11-14 15:05:57,2026-11-14 15:05:57
+PRT-0016,Oil Filter-YZZD4,Toyota,Filters,Universal,,90915-YZZD4,Pcs,1,3500,10000,15000,0,10,20,5,Active,,"VIGO, BOMBADIA, VIGO OLD, LUXES, PRADO",2026-11-14 15:20:37,2026-11-14 15:20:37
+PRT-0017,Oil Filter-302A,Toyota,Filters,Toyota,,SHOI-14-302A,Pcs,1,7000,15000,20000,0,10,20,5,Active,,MAZDA CX 5,2026-11-14 15:24:39,2026-11-14 15:47:08
