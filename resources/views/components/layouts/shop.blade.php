@@ -204,7 +204,9 @@
         <div class="border-t border-white/10">
             <div class="wrap flex flex-wrap items-center justify-between gap-3 py-5 text-xs">
                 <span>&copy; {{ date('Y') }} {{ setting('business_name') }}</span>
-                <a href="{{ route('login') }}" class="hover:text-white">{{ __('Staff login') }}</a>
+                @unless (config('ajluxe.admin_domain')) {{-- with its own address the staff portal is not linked from the website --}}
+                    <a href="{{ route('login') }}" class="hover:text-white">{{ __('Staff login') }}</a>
+                @endunless
             </div>
         </div>
     </footer>

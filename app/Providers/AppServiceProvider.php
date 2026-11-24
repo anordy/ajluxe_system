@@ -20,6 +20,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // website components keep the visitor's language on their background updates
-        \Livewire\Livewire::addPersistentMiddleware([\App\Http\Middleware\SetShopLocale::class]);
+        \Livewire\Livewire::addPersistentMiddleware([\App\Http\Middleware\SetShopLocale::class, \App\Http\Middleware\StaffHost::class, \App\Http\Middleware\ShopHost::class]);
     }
 }

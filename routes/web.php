@@ -30,7 +30,7 @@ Route::get('/storage/{path}', function (string $path) {
     return response()->file($file, ['Cache-Control' => 'public, max-age=604800']);
 })->where('path', '.*')->name('storage.public');
 
-Route::name('shop.')->middleware('shop.locale')->group(function () {
+Route::name('shop.')->middleware(['shop.host', 'shop.locale'])->group(function () {
     // English / Kiswahili switch in the header; remembered for a year on this device
     Route::get('/language/{lang}', function (Request $request, string $lang) {
         abort_unless(isset(\App\Http\Middleware\SetShopLocale::LOCALES[$lang]), 404);
@@ -72,11 +72,11 @@ Route::name('shop.')->middleware('shop.locale')->group(function () {
 /*
 | Management system (staff)
 */
-Route::middleware('guest')->group(function () {
+Route::middleware(['staff.host', 'guest'])->group(function () {
     Route::get('/login', Livewire\Auth\Login::class)->name('login');
 });
 
-Route::middleware('auth:web')->group(function () {   // staff login only — website customers can never pass
+Route::middleware(['staff.host', 'auth:web'])->group(function () {   // staff login only — website customers can never pass
     Route::post('/logout', function (Request $request) {
         \App\Support\Audit::log('Auth', 'LOGOUT', $request->user()->username);
         Auth::logout();
