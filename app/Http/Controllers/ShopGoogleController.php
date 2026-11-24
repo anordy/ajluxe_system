@@ -18,6 +18,12 @@ class ShopGoogleController extends Controller
     {
         abort_unless(GoogleSignIn::enabled(), 404);
 
+        // opened on another address (www., http): go to the APP_URL one first, so the return lands in the same session
+        $start = GoogleSignIn::startUrl();
+        if (rtrim(request()->url(), '/') !== rtrim($start, '/')) {
+            return redirect()->away($start);
+        }
+
         return redirect()->away(GoogleSignIn::redirectUrl());
     }
 

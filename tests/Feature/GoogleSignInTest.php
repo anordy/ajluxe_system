@@ -42,7 +42,7 @@ class GoogleSignInTest extends TestCase
         $to = $this->get(route('shop.google'))->assertRedirect()->headers->get('Location');
         $this->assertStringStartsWith('https://accounts.google.com/o/oauth2/v2/auth?', $to);
         parse_str(parse_url($to, PHP_URL_QUERY), $q);
-        $this->assertSame(route('shop.google.callback'), $q['redirect_uri']);
+        $this->assertSame(rtrim(config('app.url'), '/').'/account/google/callback', $q['redirect_uri']);
         $this->assertSame('S256', $q['code_challenge_method']);
 
         return $this->get(route('shop.google.callback', ['code' => 'abc', 'state' => $q['state']]));
@@ -106,5 +106,15 @@ class GoogleSignInTest extends TestCase
         config(['services.google.client_id' => null]);
         $this->get(route('shop.login'))->assertDontSee('Continue with Google');
         $this->get(route('shop.google'))->assertNotFound();
+    }
+
+    public function test_return_address_is_always_the_app_url_one(): void
+    {
+        config(['app.url' => 'https://ajluxeauto.co.tz']);
+        // opened on www.: first moved to the main address, then to Google with the registered return address
+        $this->get('https://www.ajluxeauto.co.tz/account/google')->assertRedirect('https://ajluxeauto.co.tz/account/google');
+        $to = $this->get('https://ajluxeauto.co.tz/account/google')->headers->get('Location');
+        parse_str(parse_url($to, PHP_URL_QUERY), $q);
+        $this->assertSame('https://ajluxeauto.co.tz/account/google/callback', $q['redirect_uri']);
     }
 }
