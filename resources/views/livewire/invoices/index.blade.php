@@ -38,7 +38,7 @@
                     <tbody>
                     @forelse ($rows as $inv)
                         <tr wire:key="i{{ $inv->id }}">
-                            <td><div class="font-mono text-xs font-bold text-ink-900">{{ $inv->number }}</div><div class="text-xs text-ink-400">{{ $inv->date->format('d M Y') }}</div></td>
+                            <td><a href="{{ route('invoices.show', $inv) }}" wire:navigate class="font-mono text-xs font-bold text-ink-900 hover:text-brand-600">{{ $inv->number }}</a><div class="text-xs text-ink-400">{{ $inv->date->format('d M Y') }}</div></td>
                             <td><div class="font-medium">{{ $inv->customerName() }}</div><div class="text-xs text-ink-400">{{ $inv->customer?->phone }}</div></td>
                             <td>
                                 @if ($inv->jobCard)
@@ -55,6 +55,7 @@
                                 @if ((float) $inv->balance > 0 && $inv->status !== 'cancelled')
                                     <button class="btn-primary btn-sm" wire:click="$dispatch('open-payment-form', { invoiceId: {{ $inv->id }} })">Pay</button>
                                 @endif
+                                <a href="{{ route('invoices.show', $inv) }}" wire:navigate class="btn-icon" title="View" aria-label="View {{ $inv->number }}"><x-icon name="eye" class="h-4 w-4" /></a>
                                 <a href="{{ route('print.invoice', $inv) }}" target="_blank" class="btn-icon" title="Print"><x-icon name="printer" class="h-4 w-4" /></a>
                                 @if ($inv->status !== 'cancelled' && $this->canVoid())
                                     <div x-data="{ m: false }" class="relative inline-block">
@@ -81,7 +82,7 @@
                         <tr wire:key="p{{ $p->id }}">
                             <td><div class="font-mono text-xs font-bold text-ink-900">{{ $p->number }}</div><div class="text-xs text-ink-400">{{ $p->date->format('d M Y') }}</div></td>
                             <td class="font-medium">{{ $p->customer?->name ?? '—' }}</td>
-                            <td class="font-mono text-xs">{{ $p->invoice?->number ?? ($p->jobCard ? 'Advance · '.$p->jobCard->number : '—') }}</td>
+                            <td class="font-mono text-xs">@if ($p->invoice) <a href="{{ route('invoices.show', $p->invoice) }}" wire:navigate class="hover:text-brand-600">{{ $p->invoice->number }}</a> @else {{ $p->jobCard ? 'Advance · '.$p->jobCard->number : '—' }} @endif</td>
                             <td>{{ $p->mode }} @if ($p->reference) <div class="font-mono text-xs text-ink-400">{{ $p->reference }}</div> @endif</td>
                             <td class="text-right font-semibold">{{ amount($p->amount) }}</td>
                             <td class="text-ink-500">{{ $p->creator?->name ?? '—' }}</td>

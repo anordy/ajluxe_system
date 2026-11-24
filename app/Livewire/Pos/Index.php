@@ -211,6 +211,8 @@ class Index extends Component
             'lastSale'  => $this->lastSaleId ? Invoice::find($this->lastSaleId) : null,
             'todayCount'=> Invoice::where('type', 'counter')->active()->whereDate('date', today())->count(),
             'todayTotal'=> (float) Invoice::where('type', 'counter')->active()->whereDate('date', today())->sum('grand_total'),
+            'recent'    => Invoice::where('type', 'counter')->with(['customer:id,name,phone', 'items:id,invoice_id,description,qty'])
+                ->latest('id')->limit(10)->get(),
         ]);
     }
 }

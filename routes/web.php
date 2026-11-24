@@ -121,6 +121,7 @@ Route::middleware(['staff.host', 'auth:web'])->group(function () {   // staff lo
             Route::get('/job-cards/{jobCard}', Livewire\JobCards\Show::class)->name('job-cards.show');
         });
         Route::get('/invoices', Livewire\Invoices\Index::class)->middleware('role:admin,manager,staff')->name('invoices.index');
+        Route::get('/invoices/{invoice}', Livewire\Sales\Show::class)->middleware('role:admin,manager,staff')->name('invoices.show');
 
         // ---- Parts shop (Phase 4) ----
         Route::get('/pos', Livewire\Pos\Index::class)->middleware('role:admin,manager,staff')->name('pos');

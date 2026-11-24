@@ -37,6 +37,9 @@
                 @endif
                 @if ($invoice)
                     <a href="{{ route('print.invoice', $invoice) }}" target="_blank" class="btn-dark btn-sm"><x-icon name="printer" class="h-4 w-4" /> Invoice {{ $invoice->number }}</a>
+                    @if (auth()->user()->hasRole('admin', 'manager', 'staff'))
+                        <a href="{{ route('invoices.show', $invoice) }}" wire:navigate class="btn-light btn-sm"><x-icon name="eye" class="h-4 w-4" /> View invoice</a>
+                    @endif
                 @endif
             </div>
         </div>

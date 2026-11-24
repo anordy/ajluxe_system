@@ -120,7 +120,7 @@
                 @forelse ($invoices as $inv)
                     <li class="flex items-center justify-between gap-3 px-5 py-3" wire:key="ci{{ $inv->id }}">
                         <div>
-                            <p class="font-mono text-xs font-bold text-ink-900">{{ $inv->number }}</p>
+                            <a href="{{ route('invoices.show', $inv) }}" wire:navigate class="font-mono text-xs font-bold text-ink-900 hover:text-brand-600">{{ $inv->number }}</a>
                             <p class="text-xs text-ink-400">{{ $inv->date->format('d M Y') }} · {{ money($inv->grand_total) }}</p>
                         </div>
                         <div class="flex items-center gap-2">

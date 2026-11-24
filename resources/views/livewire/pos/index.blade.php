@@ -32,6 +32,33 @@
                 <div class="card col-span-full p-10 text-center text-ink-400">No parts found.</div>
             @endforelse
         </div>
+
+        {{-- ===== recent sales: open any one to see exactly what was bought ===== --}}
+        <div class="card overflow-hidden">
+            <div class="card-header">
+                <h3 class="card-title">Recent sales</h3>
+                <a href="{{ route('invoices.index', ['kind' => 'counter']) }}" wire:navigate class="text-sm font-semibold text-ink-500 hover:text-ink-900">All spare parts sales</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead><tr><th>Sale</th><th>Customer</th><th>Items</th><th class="text-right">Total</th><th>Status</th><th class="text-right"><span class="sr-only">View</span></th></tr></thead>
+                    <tbody>
+                    @forelse ($recent as $r)
+                        <tr wire:key="rs{{ $r->id }}" class="cursor-pointer" onclick="Livewire.navigate('{{ route('invoices.show', $r) }}')">
+                            <td class="whitespace-nowrap"><div class="font-mono text-xs font-bold text-ink-900">{{ $r->number }}</div><div class="text-xs text-ink-400">{{ $r->date->isToday() ? 'Today' : $r->date->format('d M') }}, {{ $r->created_at->format('H:i') }}</div></td>
+                            <td><div class="font-medium">{{ $r->customerName() }}</div>@if ($r->customer?->phone) <div class="text-xs text-ink-400">{{ $r->customer->phone }}</div> @endif</td>
+                            <td class="max-w-[260px] text-xs text-ink-500"><span class="line-clamp-2">{{ $r->items->map(fn ($i) => rtrim(rtrim(number_format($i->qty, 2), '0'), '.').' × '.$i->description)->implode(', ') }}</span></td>
+                            <td class="whitespace-nowrap text-right font-semibold">{{ amount($r->grand_total) }}</td>
+                            <td><span class="{{ \App\Models\Invoice::STATUS_BADGES[$r->status] }}">{{ \App\Models\Invoice::STATUS_LABELS[$r->status] }}</span></td>
+                            <td class="text-right" onclick="event.stopPropagation()"><a href="{{ route('invoices.show', $r) }}" wire:navigate class="btn-icon" title="View sale" aria-label="View sale {{ $r->number }}"><x-icon name="eye" class="h-4 w-4" /></a></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="py-8 text-center text-ink-400">No sales yet.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     {{-- ===== cart ===== --}}
@@ -44,6 +71,7 @@
                     <div class="mt-3 flex flex-wrap gap-2">
                         <a href="{{ route('print.thermal', $lastSale) }}" target="_blank" class="btn-dark btn-sm"><x-icon name="printer" class="h-4 w-4" /> Receipt (80mm)</a>
                         <a href="{{ route('print.invoice', $lastSale) }}" target="_blank" class="btn-light btn-sm"><x-icon name="printer" class="h-4 w-4" /> A4 Invoice</a>
+                        <a href="{{ route('invoices.show', $lastSale) }}" wire:navigate class="btn-light btn-sm"><x-icon name="eye" class="h-4 w-4" /> View sale</a>
                     </div>
                 </div>
             @endif
