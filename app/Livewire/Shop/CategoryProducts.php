@@ -12,6 +12,8 @@ use Livewire\Component;
  */
 class CategoryProducts extends Component
 {
+    use AddsToCart;
+
     public const LIMIT = 8;
 
     /** Random picks chosen once per visit, so they don't reshuffle while the page is used. */

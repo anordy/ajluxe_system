@@ -37,4 +37,12 @@ class CategoryProductsTest extends TestCase
             ->dispatch('category-filter', q: '', cats: [])
             ->assertSee('Brake Disc Front');
     }
+
+    public function test_add_to_cart_from_the_category_products(): void
+    {
+        $this->seed();
+        $p = $this->part('Battery N50', 'Car Parts', 'Batteries');
+        Livewire::test(CategoryProducts::class)->call('addToCart', $p->id)->assertDispatched('cart-updated');
+        $this->assertSame(1, \App\Support\Cart::count());
+    }
 }
