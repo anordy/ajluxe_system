@@ -21,7 +21,7 @@ class Part extends Model
     protected $fillable = [
         'sku', 'name', 'oem_no', 'brand', 'category', 'unit', 'vehicle_make', 'vehicle_model',
         'rack_location', 'purchase_price', 'selling_price', 'min_selling_price', 'tax_rate', 'reorder_level', 'image_path', 'is_active',
-        'show_online', 'sourced', 'source_supplier_id', 'discount_percent', 'web_description', 'subcategory', 'specs', 'variant_of',
+        'show_online', 'sourced', 'source_supplier_id', 'discount_percent', 'ribbon', 'web_description', 'subcategory', 'specs', 'variant_of',
     ];
 
     protected function casts(): array
@@ -81,6 +81,47 @@ class Part extends Model
     // ---------------------------------------------------------------- website
 
     /** Parts customers can see on the website. */
+    /** Ribbons that can sit on a product picture on the website. */
+    public const RIBBONS = ['sale' => 'Sale', 'new' => 'New', 'best_offer' => 'Best offer', 'sold_out' => 'Sold out'];
+
+    /**
+     * The ribbon to show on the website: the one picked on the part, or automatically
+     * Sold out (nothing to sell) → New (first 12 hours) → Sale (has a discount). Null = no ribbon.
+     * Returns ['key' => ..., 'label' => ...]; the discount is added to the label when there is one.
+     */
+    public function ribbonBadge(): ?array
+    {
+        $key = $this->attributes['ribbon'] ?? null;
+        if ($key === 'none') {
+            return null;
+        }
+        if (! isset(self::RIBBONS[$key])) {
+            $key = match (true) {
+                $this->shopStock() <= 0 => 'sold_out',
+                $this->isNew()          => 'new',
+                $this->hasDiscount()    => 'sale',
+                default                 => null,
+            };
+        }
+        if (! $key) {
+            return null;
+        }
+        $label = __(self::RIBBONS[$key]);
+        if ($key !== 'sold_out' && $this->hasDiscount()) {
+            $label .= ' −'.$this->discountShown().'%';
+        }
+
+        return ['key' => $key, 'label' => $label];
+    }
+
+    /** Hours a newly added part wears the "New" badge on the website. */
+    public const NEW_HOURS = 12;
+
+    public function isNew(): bool
+    {
+        return $this->created_at !== null && $this->created_at->gt(now()->subHours(self::NEW_HOURS));
+    }
+
     /** How many a bought-from-supplier part shows as available on the website when we hold none. */
     public const SOURCED_QTY = 10;
 

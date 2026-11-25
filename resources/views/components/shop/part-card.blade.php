@@ -11,9 +11,7 @@
         <a href="{{ $url }}" wire:navigate class="relative block aspect-[4/3] overflow-hidden bg-gradient-to-b from-[#F7F8F9] to-[#ECEEF1]" tabindex="-1">
             <img src="{{ $part->thumbUrl() }}" loading="lazy" decoding="async" data-fallback="{{ $part->drawingUrl() }}" onerror="if(this.dataset.fallback&&this.src!==this.dataset.fallback){this.src=this.dataset.fallback;this.classList.add('p-4')}"
                  alt="" class="h-full w-full transition-transform duration-300 group-hover:scale-[1.04] {{ $isPhoto ? 'object-cover' : 'object-contain p-4' }}">
-            @if ($part->hasDiscount())
-                <span class="absolute left-3 top-3 rounded-full bg-brand-500 px-2.5 py-1 text-xs font-bold text-white">−{{ $part->discountShown() }}%</span>
-            @endif
+            <x-shop.ribbon :part="$part" />
         </a>
         <x-shop.wish-button :part="$part" class="absolute right-3 top-3 shadow-sm" />
         {{-- on hover (always on touch screens): add to cart --}}

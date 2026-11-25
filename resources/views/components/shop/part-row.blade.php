@@ -45,7 +45,7 @@
     <a href="{{ $url }}" :href="v[sel].url" wire:navigate class="relative block aspect-square w-full overflow-hidden rounded-lg bg-gradient-to-b from-[#F7F8F9] to-[#ECEEF1] sm:max-w-none">
         <img src="{{ $part->thumbUrl() }}" loading="lazy" decoding="async" :src="it.img" data-fallback="{{ $part->drawingUrl() }}" onerror="if(this.dataset.fallback&&this.src!==this.dataset.fallback){this.src=this.dataset.fallback;this.classList.add('p-4')}"
              alt="" loading="lazy" class="h-full w-full {{ $isPhoto ? 'object-cover' : 'object-contain p-4' }}">
-        @if ($part->hasDiscount()) <span class="absolute left-2.5 top-2.5 rounded-full bg-brand-500 px-2.5 py-1 text-xs font-bold text-white">−{{ $part->discountShown() }}%</span> @endif
+        <x-shop.ribbon :part="$part" />
     </a>
     <x-shop.wish-button :part="$part" class="absolute right-2.5 top-2.5 shadow-sm" />
     </div>

@@ -261,7 +261,16 @@
                             <input type="number" min="0" max="90" step="any" wire:model.live.debounce.400ms="form.discount_percent" class="input" placeholder="0">
                             @error('form.discount_percent') <p class="error">{{ $message }}</p> @enderror
                         </div>
-                        <div class="sm:col-span-2">
+                        <div>
+                            <label class="label">Ribbon on the picture</label>
+                            <select wire:model="form.ribbon" class="input">
+                                <option value="">Automatic</option>
+                                @foreach (\App\Models\Part::RIBBONS as $rk => $rl) <option value="{{ $rk }}">{{ $rl }}</option> @endforeach
+                                <option value="none">No ribbon</option>
+                            </select>
+                            <p class="mt-1 text-xs text-ink-400">Automatic: Sold out → New (first 12 h) → Sale (with a discount)</p>
+                        </div>
+                        <div>
                             <label class="label">Price customers see</label>
                             <div class="input bg-white font-semibold">
                                 @if ($sp <= 0) <span class="font-normal text-ink-400">Set a selling price — parts without one are hidden</span>

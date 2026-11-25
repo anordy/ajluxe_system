@@ -17,7 +17,7 @@
                      class="h-full w-full object-contain p-6 transition-transform duration-150 ease-out motion-reduce:transition-none"
                      :style="zoom && window.matchMedia('(hover: hover)').matches ? `transform: scale(2.2); transform-origin: ${x}% ${y}%` : ''">
             </div>
-            @if ($p->hasDiscount()) <span class="tag pointer-events-none absolute left-0 top-5 py-1.5 pl-5 pr-3 text-lg">{{ __('Save :n%', ['n' => $p->discountShown()]) }}</span> @endif
+            <x-shop.ribbon :part="$p" size="lg" />
             <button type="button" @click="big = true" class="absolute bottom-4 left-4 flex h-11 w-11 items-center justify-center rounded-md bg-white shadow-md ring-1 ring-[#16181B]/10 hover:bg-[#F4F5F7]"
                     aria-label="{{ __('View full screen') }}" title="{{ __('View full screen') }}">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>

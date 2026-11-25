@@ -185,6 +185,7 @@ class Index extends Component
             'form.sourced'        => 'boolean',
             'form.source_supplier_id' => ['nullable', 'required_if_accepted:form.sourced', 'integer', 'exists:suppliers,id'],
             'form.discount_percent' => 'nullable|numeric|min:0|max:90',
+            'form.ribbon'         => 'nullable|in:none,sale,new,best_offer,sold_out',
             'form.web_description'  => 'nullable|string|max:2000',
             'form.variant_of'       => ['nullable', 'integer', 'exists:parts,id', Rule::notIn(array_filter([$this->editingId]))],
             'opening_qty'         => 'nullable|numeric|min:0',
@@ -195,6 +196,7 @@ class Index extends Component
             $data[$n] = (float) ($data[$n] ?? 0);
         }
         $data['unit'] ??= 'Pcs';
+        $data['ribbon'] = ($data['ribbon'] ?? '') ?: null;
         $data['sourced'] = (bool) ($data['sourced'] ?? false);
         if (! $data['sourced']) {
             $data['source_supplier_id'] = null;
@@ -302,7 +304,7 @@ class Index extends Component
             'sku' => '', 'name' => '', 'oem_no' => '', 'brand' => '', 'category' => '', 'subcategory' => '', 'specs_text' => '', 'unit' => 'Pcs',
             'vehicle_make' => '', 'vehicle_model' => '', 'rack_location' => '', 'purchase_price' => '',
             'selling_price' => '', 'min_selling_price' => '', 'tax_rate' => '', 'reorder_level' => '', 'is_active' => true,
-            'show_online' => true, 'sourced' => false, 'source_supplier_id' => '', 'discount_percent' => '', 'web_description' => '', 'variant_of' => '',
+            'show_online' => true, 'sourced' => false, 'source_supplier_id' => '', 'discount_percent' => '', 'ribbon' => '', 'web_description' => '', 'variant_of' => '',
         ];
     }
 
