@@ -46,7 +46,7 @@
                         <td>
                             <div class="flex items-center gap-3">
                                 @if ($p->imageUrl())
-                                    <img src="{{ $p->thumbUrl() }}" loading="lazy" class="h-10 w-10 rounded-lg border border-ink-100 object-cover" alt="">
+                                    <img src="{{ $p->thumbUrl() }}" loading="lazy" class="h-10 w-10 rounded-lg border border-ink-100 bg-white object-contain p-0.5" alt="">
                                 @else
                                     <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-ink-100 text-ink-400"><x-icon name="box" class="h-5 w-5" /></span>
                                 @endif

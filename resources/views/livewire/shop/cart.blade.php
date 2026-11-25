@@ -26,7 +26,7 @@
                         <a href="{{ $p ? route('shop.product', [$p, $p->slug()]) : '#' }}" wire:navigate class="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-gradient-to-b from-[#F7F8F9] to-[#ECEEF1] sm:h-28 sm:w-28">
                             @if ($p)
                                 <img src="{{ $p->thumbUrl() }}" loading="lazy" data-fallback="{{ $p->drawingUrl() }}" onerror="if(this.dataset.fallback&&this.src!==this.dataset.fallback){this.src=this.dataset.fallback;this.classList.add('p-3')}"
-                                     alt="" class="h-full w-full {{ $p->imageUrl() && ! str_ends_with(strtolower((string) $p->image_path), '.svg') ? 'object-cover' : 'object-contain p-3' }}">
+                                     alt="" class="h-full w-full {{ $p->imageUrl() && ! str_ends_with(strtolower((string) $p->image_path), '.svg') ? 'object-contain bg-white p-1.5' : 'object-contain p-3' }}">
                             @endif
                             @if ($l->price < $l->list) <span class="absolute left-1.5 top-1.5 rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-bold text-white">−{{ round((1 - $l->price / $l->list) * 100) }}%</span> @endif
                         </a>
