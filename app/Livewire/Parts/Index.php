@@ -236,7 +236,8 @@ class Index extends Component
             } else {
                 $data['sku'] ??= Numbering::code('part', 'PRT', 5);
                 $part = Part::create($data);
-                $qty = (float) ($this->opening_qty ?: 0);
+                // supplier parts are bought when sold: never add stock for them here
+                $qty = $part->sourced ? 0 : (float) ($this->opening_qty ?: 0);
                 if ($qty > 0) {
                     StockMovement::record($part, 'opening', in: $qty, unitCost: (float) $part->purchase_price, note: 'Opening stock');
                 }

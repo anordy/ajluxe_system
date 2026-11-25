@@ -204,7 +204,11 @@
             @unless ($editingId)
                 <div>
                     <label class="label">Opening stock</label>
+                    @if ($form['sourced'] ?? false)
+                        <p class="input flex items-center bg-ink-50 text-sm text-ink-500">0 · bought from the supplier when sold</p>
+                    @else
                     <input type="number" min="0" step="any" wire:model="opening_qty" class="input" placeholder="Quantity on the shelf now">
+                    @endif
                     @error('opening_qty') <p class="error">{{ $message }}</p> @enderror
                 </div>
             @else

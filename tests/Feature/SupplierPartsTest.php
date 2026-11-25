@@ -73,6 +73,7 @@ class SupplierPartsTest extends TestCase
         $this->assertStringContainsString($order->fresh()->invoice->number, $po->notes);
         $this->assertEquals(0, (float) $p->fresh()->stock_qty);
         $this->assertEquals(2, (float) $order->fresh()->invoice->items->first()->sourced_qty);
+        $this->assertTrue($p->fresh()->sourced);                               // buying for a sale keeps the tag
 
         // dashboard: 200,000 sold from suppliers, 80,000 profit; nothing from our own stock
         $sum = app(Analytics::class)->summary(today()->toDateString(), today()->toDateString());
@@ -121,5 +122,25 @@ class SupplierPartsTest extends TestCase
         $this->assertTrue($p->sourced);
         $this->assertSame($sup->id, $p->source_supplier_id);
         $this->get(route('parts.index', ['stock' => 'sourced']))->assertSee('Radiator Cap')->assertSee('Jirani Spares');
+    }
+
+    public function test_no_opening_stock_and_manual_purchase_removes_the_tag(): void
+    {
+        $sup = Supplier::create(['code' => 'SUP-6', 'name' => 'Jirani Spares', 'is_active' => true]);
+        $this->actingAs(User::factory()->role(User::MANAGER)->create());
+        Livewire::test(\App\Livewire\Parts\Index::class)->call('create')
+            ->set('form.name', 'CV Joint')->set('form.category', 'Car Parts')->set('form.purchase_price', '20000')->set('form.selling_price', '35000')
+            ->set('form.sourced', true)->set('form.source_supplier_id', (string) $sup->id)->set('opening_qty', '10')->call('save')->assertHasNoErrors();
+        $p = Part::where('name', 'CV Joint')->firstOrFail();
+        $this->assertEquals(0, (float) $p->stock_qty);                       // no stock added
+
+        // buy for the shelf ourselves → it becomes our own stock
+        $m = app(\App\Services\PurchaseManager::class);
+        $po = $m->saveDraft(null, ['supplier_id' => $sup->id, 'date' => today()->toDateString(), 'expected_date' => null, 'notes' => null], [['part_id' => $p->id, 'qty' => 3, 'rate' => 20000]]);
+        $m->markOrdered($po);
+        $m->receive($po, $po->items()->pluck('qty', 'id')->all());
+        $p->refresh();
+        $this->assertFalse($p->sourced);
+        $this->assertEquals(3, (float) $p->stock_qty);
     }
 }

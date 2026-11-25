@@ -54,13 +54,22 @@
                     <tbody>
                     @foreach ($view->items as $i)
                         <tr>
-                            <td>{{ $i->name }} <div class="font-mono text-xs text-ink-400">{{ $i->part?->sku }} {{ $i->part?->rack_location ? '· '.$i->part->rack_location : '' }}</div></td>
+                            <td>{{ $i->name }} <div class="font-mono text-xs text-ink-400">{{ $i->part?->sku }} {{ $i->part?->rack_location ? '· '.$i->part->rack_location : '' }}</div>
+                                @if ($i->part?->sourced)
+                                    <span class="mt-1 inline-flex items-center gap-1 rounded-md bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-700 ring-1 ring-sky-200">
+                                        <x-icon name="truck" class="h-3.5 w-3.5" /> From supplier: {{ $i->part->sourceSupplier?->name ?? '—' }}
+                                    </span>
+                                @endif
+                            </td>
                             <td class="text-right">{{ $i->qtyLabel() }}</td>
                             <td class="text-right">{{ amount($i->price) }} @if ((float) $i->discount_percent > 0) <div class="text-xs text-brand-600">−{{ (int) $i->discount_percent }}%</div> @endif</td>
                             <td class="text-right font-semibold">{{ amount($i->amount) }}</td>
                             @if ($view->status === 'pending')
-                                @php $s = (float) ($i->part?->stock_qty ?? 0); @endphp
-                                <td class="text-right font-semibold {{ $s < (float) $i->qty ? 'text-brand-600' : 'text-emerald-700' }}">{{ rtrim(rtrim(number_format($s, 2), '0'), '.') }}</td>
+                                @php $s = max(0, (float) ($i->part?->stock_qty ?? 0)); $buy = $i->part?->sourced ? max(0, (float) $i->qty - $s) : 0; @endphp
+                                <td class="whitespace-nowrap text-right font-semibold {{ $buy > 0 ? 'text-sky-700' : ($s < (float) $i->qty ? 'text-brand-600' : 'text-emerald-700') }}">
+                                    {{ rtrim(rtrim(number_format($s, 2), '0'), '.') }}
+                                    @if ($buy > 0) <div class="text-xs font-normal">buy {{ rtrim(rtrim(number_format($buy, 2), '0'), '.') }}</div> @endif
+                                </td>
                             @endif
                         </tr>
                     @endforeach

@@ -77,13 +77,13 @@ class PurchaseManager
     /**
      * @param  array  $quantities  [purchase_order_item_id => qty received now]
      */
-    public function receive(PurchaseOrder $po, array $quantities, ?string $supplierInvoiceNo = null): void
+    public function receive(PurchaseOrder $po, array $quantities, ?string $supplierInvoiceNo = null, bool $forSale = false): void
     {
         if (! $po->canReceive()) {
             throw new BusinessRuleException('Mark the purchase order as ordered before receiving goods.');
         }
 
-        DB::transaction(function () use ($po, $quantities, $supplierInvoiceNo) {
+        DB::transaction(function () use ($po, $quantities, $supplierInvoiceNo, $forSale) {
             $any = false;
             foreach ($po->items()->with('part')->get() as $item) {
                 $qty = round((float) ($quantities[$item->id] ?? 0), 2);
@@ -98,6 +98,11 @@ class PurchaseManager
                 StockMovement::record($item->part, 'purchase', in: $qty, unitCost: $unitCost, reference: $po, referenceNo: $po->number);
                 $item->increment('received_qty', $qty);
                 Part::whereKey($item->part_id)->update(['purchase_price' => $unitCost]);
+                // we bought it to keep on our shelf: it is our stock now, no longer a buy-from-supplier part
+                if (! $forSale && $item->part->sourced) {
+                    Part::whereKey($item->part_id)->update(['sourced' => false]);
+                    Audit::log('Parts', 'UPDATE', $item->part->sku, "{$item->part->name}: now our own stock (bought on {$po->number}), supplier tag removed");
+                }
                 $any = true;
             }
             if (! $any) {

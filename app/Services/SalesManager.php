@@ -208,7 +208,7 @@ class SalesManager
                 'notes' => 'Bought from supplier for a sale.'.(! empty($sale['notes']) ? ' '.$sale['notes'].'.' : ''),
             ], collect($items)->map(fn ($qty, $partId) => ['part_id' => $partId, 'qty' => $qty, 'rate' => (float) $parts[$partId]->purchase_price])->values()->all());
             $buyer->markOrdered($po);
-            $buyer->receive($po, $po->items()->pluck('qty', 'id')->all());
+            $buyer->receive($po, $po->items()->pluck('qty', 'id')->all(), null, forSale: true);
             $pos[] = $po;
             $bought += $items;
         }

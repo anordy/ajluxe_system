@@ -105,7 +105,7 @@ class Index extends Component
         return view('livewire.orders.index', [
             'orders' => $orders,
             'counts' => $counts,
-            'view'   => $this->showView && $this->viewId ? Order::with(['items.part', 'shopCustomer', 'invoice', 'handler:id,name'])->find($this->viewId) : null,
+            'view'   => $this->showView && $this->viewId ? Order::with(['items.part.sourceSupplier:id,name', 'shopCustomer', 'invoice', 'handler:id,name'])->find($this->viewId) : null,
             'modes'  => list_options('payment_mode'),
         ]);
     }
