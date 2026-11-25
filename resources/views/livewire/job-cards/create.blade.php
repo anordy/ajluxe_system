@@ -1,6 +1,14 @@
 <form wire:submit="save" class="mx-auto max-w-4xl space-y-6">
     <a href="{{ route('job-cards.index') }}" wire:navigate class="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-ink-900">← Job cards</a>
 
+    @if ($booking_id && ($bk = \App\Models\GarageBooking::find($booking_id)))
+        <div class="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+            <b>From a website booking:</b> {{ $bk->name }} · {{ $bk->phone }} · {{ $bk->car }}@if ($bk->plate) · <span class="font-mono">{{ $bk->plate }}</span>@endif.
+            @unless ($customer_id) Not a customer yet: add them below (their phone is in the search box), then add the car. @endunless
+            The booking is marked "Job card opened" when you save.
+        </div>
+    @endif
+
     {{-- 1. customer & vehicle --}}
     <div class="card">
         <div class="card-header"><h2 class="card-title"><span class="mr-2 text-brand-500">1</span> Customer &amp; Vehicle</h2></div>

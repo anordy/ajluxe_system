@@ -16,11 +16,13 @@ class User extends Authenticatable
     public const MANAGER = 'manager';
     public const MECHANIC = 'mechanic';
     public const STAFF = 'staff';
+    public const WORKSHOP = 'workshop_manager';
 
     /** role => label shown in the app */
     public const ROLES = [
         self::ADMIN    => 'Administrator',
         self::MANAGER  => 'Manager',
+        self::WORKSHOP => 'Workshop Manager',
         self::MECHANIC => 'Mechanic',
         self::STAFF    => 'Sales Staff',
     ];

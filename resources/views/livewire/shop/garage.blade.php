@@ -57,11 +57,18 @@
 
     {{-- ============================== BOOK --}}
     <section id="book" class="wrap scroll-mt-28 pt-16"
-             x-data="{ name: '', car: '', plate: '', job: '', day: '' }">
+             x-data="{ name: @js($me?->name ?? ''), phone: @js($me?->phone ?? ''), car: '', plate: '', job: '', day: '', sent: false,
+                       send() {
+                           const b = { name: this.name, phone: this.phone, car: this.car, plate: this.plate, job: this.job, day: this.day };
+                           $wire.book(b).then(ok => { if (ok) this.sent = true });
+                           @if ($waBase)
+                           window.open('{{ $waBase }}?text=' + encodeURIComponent({{ Js::from(__('Booking request')) }} + '\n' + {{ Js::from(__('Name:')) }} + ' ' + this.name + ' (' + this.phone + ')\n' + {{ Js::from(__('Car:')) }} + ' ' + this.car + (this.plate ? ' (' + this.plate + ')' : '') + '\n' + {{ Js::from(__('Work needed:')) }} + ' ' + this.job + (this.day ? '\n' + {{ Js::from(__('Preferred day:')) }} + ' ' + this.day : '')), '_blank');
+                           @endif
+                       } }">
         <div class="grid overflow-hidden rounded-xl border border-[#16181B]/10 bg-white shadow-[0_8px_30px_rgba(22,24,27,.06)] lg:grid-cols-5">
             <div class="bg-[#16181B] p-8 text-white sm:p-10 lg:col-span-2">
                 <h2 class="font-display text-4xl font-extrabold tracking-tight">{{ __('Book your car in') }}</h2>
-                <p class="mt-3 max-w-md text-white/70">{{ __('Tell us about the car and what it needs. Your booking opens in WhatsApp, ready to send to us.') }}</p>
+                <p class="mt-3 max-w-md text-white/70">{{ __('Tell us about the car and what it needs. We get your booking straight away, and it also opens in WhatsApp so you can chat with us.') }}</p>
                 <ul class="mt-8 space-y-4 text-[15px]">
                     <li class="flex gap-3">
                         <svg class="mt-0.5 h-5 w-5 shrink-0 text-brand-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
@@ -81,11 +88,12 @@
                     @endif
                 </ul>
             </div>
-            <form class="grid gap-4 p-8 sm:grid-cols-2 sm:p-10 lg:col-span-3"
-                  @submit.prevent="window.open('{{ $waBase }}?text=' + encodeURIComponent({{ Js::from(__('Booking request')) }} + '\n' + {{ Js::from(__('Name:')) }} + ' ' + name + '\n' + {{ Js::from(__('Car:')) }} + ' ' + car + (plate ? ' (' + plate + ')' : '') + '\n' + {{ Js::from(__('Work needed:')) }} + ' ' + job + (day ? '\n' + {{ Js::from(__('Preferred day:')) }} + ' ' + day : '')), '_blank')">
-                <div><label for="b-name" class="s-label">{{ __('Your name') }}</label><input id="b-name" x-model="name" required class="s-input" autocomplete="name"></div>
-                <div><label for="b-plate" class="s-label">{{ __('Plate number') }}</label><input id="b-plate" x-model="plate" class="s-input uppercase placeholder:normal-case" placeholder="{{ __('e.g. T 123 ABC') }}"></div>
-                <div class="sm:col-span-2"><label for="b-car" class="s-label">{{ __('Car make and model') }}</label><input id="b-car" x-model="car" required class="s-input" placeholder="{{ __('e.g. Toyota Prado 2015') }}"></div>
+            <form class="grid gap-4 p-8 sm:grid-cols-2 sm:p-10 lg:col-span-3" @submit.prevent="send()">
+                <div x-show="sent" x-cloak class="rounded-lg bg-emerald-50 p-4 text-sm font-medium text-emerald-800 sm:col-span-2" role="status">{{ __('Booking received. We will call you to confirm the day.') }}</div>
+                <div><label for="b-name" class="s-label">{{ __('Your name') }}</label><input id="b-name" x-model="name" required maxlength="120" class="s-input" autocomplete="name"></div>
+                <div><label for="b-phone" class="s-label">{{ __('Phone number') }}</label><input id="b-phone" type="tel" x-model="phone" required maxlength="30" minlength="9" class="s-input" autocomplete="tel" placeholder="{{ __('e.g. 0754 123 456') }}"></div>
+                <div><label for="b-car" class="s-label">{{ __('Car make and model') }}</label><input id="b-car" x-model="car" required maxlength="120" class="s-input" placeholder="{{ __('e.g. Toyota Prado 2015') }}"></div>
+                <div><label for="b-plate" class="s-label">{{ __('Plate number') }}</label><input id="b-plate" x-model="plate" maxlength="30" class="s-input uppercase placeholder:normal-case" placeholder="{{ __('e.g. T 123 ABC') }}"></div>
                 <div class="sm:col-span-2">
                     <label for="b-job" class="s-label">{{ __('What does it need?') }}</label>
                     <textarea id="b-job" x-model="job" required rows="3" class="s-input resize-none" placeholder="{{ __('e.g. service, brakes, paint the front bumper') }}"></textarea>
@@ -98,7 +106,7 @@
                     @endif
                 </div>
                 <div><label for="b-day" class="s-label">{{ __('Preferred day') }}</label><input id="b-day" type="date" x-model="day" min="{{ now()->toDateString() }}" class="s-input"></div>
-                <div class="flex items-end"><button class="s-btn-red w-full py-3.5" @disabled(! $waBase)>{{ __('Send booking on WhatsApp') }}</button></div>
+                <div class="flex items-end"><button class="s-btn-red w-full py-3.5">{{ $waBase ? __('Send booking on WhatsApp') : __('Send booking') }}</button></div>
             </form>
         </div>
     </section>

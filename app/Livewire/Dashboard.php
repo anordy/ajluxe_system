@@ -61,7 +61,13 @@ class Dashboard extends Component
     public function render()
     {
         $user = auth()->user();
-        $isBoss = $user->allows('dashboard.money');
+        $full = $user->allows('dashboard.money');
+        // e.g. the Workshop Manager: the money dashboard, but for the garage only
+        $garageOnly = ! $full && $user->allows('dashboard.garage');
+        if ($garageOnly) {
+            $this->business = 'garage';
+        }
+        $isBoss = $full || $garageOnly;
         [$from, $to, $prevFrom, $prevTo] = $this->dates();
         // a single day has no shape: show the last 14 days in the trend chart instead
         $trendFrom = $this->range === 'today' ? today()->subDays(13)->toDateString() : $from;
@@ -98,11 +104,14 @@ class Dashboard extends Component
             'out'        => DB::table('parts')->whereNull('deleted_at')->where('is_active', true)->where('sourced', false)->where('stock_qty', '<=', 0)->count(),
             'newOrders'  => DB::table('orders')->where('status', 'pending')->count(),
             'salesToday' => DB::table('invoices')->whereNull('deleted_at')->where('status', '!=', 'cancelled')->where('type', 'counter')->whereDate('date', today())->count(),
+            'bookings'   => DB::table('garage_bookings')->where('status', 'new')->count(),
             'shopToday'  => (float) DB::table('invoices')->whereNull('deleted_at')->where('status', '!=', 'cancelled')->where('type', 'counter')->whereDate('date', today())->sum('grand_total'),
         ];
 
         return view('livewire.dashboard', [
-            'user' => $user, 'isBoss' => $isBoss, 'data' => $data, 'workshop' => $workshop, 'counts' => $counts,
+            'user' => $user, 'isBoss' => $isBoss, 'garageOnly' => $garageOnly,
+            'upcoming' => $user->allows('bookings') ? \App\Models\GarageBooking::whereIn('status', ['new', 'confirmed'])
+                ->orderByRaw('preferred_date is null')->orderBy('preferred_date')->latest('id')->limit(5)->get() : collect(), 'data' => $data, 'workshop' => $workshop, 'counts' => $counts,
             'from' => $from, 'to' => $to,
             'channels' => Analytics::channels($this->business), 'colors' => Analytics::colors(isset(Analytics::BUSINESSES[$this->business]) ? $this->business : 'all'),
         ]);

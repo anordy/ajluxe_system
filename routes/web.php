@@ -114,6 +114,7 @@ Route::middleware(['staff.host', 'auth:web'])->group(function () {   // staff lo
         Route::get('/mechanics', Livewire\Mechanics\Index::class)->middleware('perm:mechanics')->name('mechanics.index');
 
         // ---- Garage: job cards (Phase 3) ----
+        Route::get('/bookings', Livewire\Bookings\Index::class)->middleware('perm:bookings')->name('bookings.index');
         Route::middleware('perm:job_cards.view,job_cards.manage')->group(function () {
             Route::get('/job-cards', Livewire\JobCards\Index::class)->name('job-cards.index');
             Route::get('/job-cards/new', Livewire\JobCards\Create::class)->middleware('perm:job_cards.manage')->name('job-cards.create');

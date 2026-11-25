@@ -17,28 +17,30 @@ class Permissions
     /** key => [label, group, default roles] */
     public const ALL = [
         'dashboard.money'  => ['See sales, profit and stock value on the Dashboard', 'Dashboard', ['manager']],
+        'dashboard.garage' => ['See garage sales and profit on the Dashboard (garage only)', 'Dashboard', ['workshop_manager']],
 
-        'job_cards.view'   => ['Open job cards', 'Garage', ['manager', 'mechanic']],
-        'job_cards.manage' => ['Create job cards, set prices, close and invoice them', 'Garage', ['manager']],
-        'customers'        => ['Customers (view, add, edit)', 'Garage', ['manager', 'staff']],
-        'vehicles.view'    => ['See vehicles', 'Garage', ['manager', 'staff', 'mechanic']],
-        'vehicles.manage'  => ['Add and edit vehicles', 'Garage', ['manager', 'staff']],
-        'services'         => ['Services & labour rates', 'Garage', ['manager']],
-        'mechanics'        => ['Mechanics list', 'Garage', ['manager']],
+        'bookings'         => ['Garage bookings from the website', 'Garage', ['manager', 'staff', 'workshop_manager']],
+        'job_cards.view'   => ['Open job cards', 'Garage', ['manager', 'mechanic', 'workshop_manager']],
+        'job_cards.manage' => ['Create job cards, set prices, close and invoice them', 'Garage', ['manager', 'workshop_manager']],
+        'customers'        => ['Customers (view, add, edit)', 'Garage', ['manager', 'staff', 'workshop_manager']],
+        'vehicles.view'    => ['See vehicles', 'Garage', ['manager', 'staff', 'mechanic', 'workshop_manager']],
+        'vehicles.manage'  => ['Add and edit vehicles', 'Garage', ['manager', 'staff', 'workshop_manager']],
+        'services'         => ['Services & labour rates', 'Garage', ['manager', 'workshop_manager']],
+        'mechanics'        => ['Mechanics list', 'Garage', ['manager', 'workshop_manager']],
 
         'pos'              => ['POS — sell spare parts', 'Spare parts', ['manager', 'staff']],
         'orders'           => ['Website orders', 'Spare parts', ['manager', 'staff']],
-        'parts.view'       => ['See the parts catalogue', 'Spare parts', ['manager', 'staff', 'mechanic']],
+        'parts.view'       => ['See the parts catalogue', 'Spare parts', ['manager', 'staff', 'mechanic', 'workshop_manager']],
         'parts.manage'     => ['Add and edit parts and prices', 'Spare parts', ['manager']],
         'price.edit'       => ['Change prices when selling (POS)', 'Spare parts', ['manager']],
         'price.below_min'  => ['Sell below a part\'s minimum price', 'Spare parts', []],
-        'stock.view'       => ['Stock register', 'Spare parts', ['manager', 'staff']],
+        'stock.view'       => ['Stock register', 'Spare parts', ['manager', 'staff', 'workshop_manager']],
         'stock.adjust'     => ['Adjust stock counts', 'Spare parts', ['manager']],
         'purchases'        => ['Purchase orders', 'Spare parts', ['manager']],
         'suppliers'        => ['Suppliers', 'Spare parts', ['manager']],
         'returns'          => ['Returns (customer and supplier)', 'Spare parts', ['manager']],
 
-        'sales.view'       => ['Invoices & payments: view and record payments', 'Money', ['manager', 'staff']],
+        'sales.view'       => ['Invoices & payments: view and record payments', 'Money', ['manager', 'staff', 'workshop_manager']],
         'sales.manage'     => ['Cancel sales and undo payments', 'Money', ['manager']],
         'reports'          => ['Reports and exports', 'Money', ['manager']],
 
@@ -48,7 +50,7 @@ class Permissions
     ];
 
     /** Roles whose ticks can be changed (the Administrator has everything). */
-    public const EDITABLE = [User::MANAGER, User::STAFF, User::MECHANIC];
+    public const EDITABLE = [User::MANAGER, User::WORKSHOP, User::STAFF, User::MECHANIC];
 
     private const CACHE = 'role_permissions.v1';
 
@@ -73,10 +75,25 @@ class Permissions
             if (! Schema::hasTable('role_permissions') || ! DB::table('role_permissions')->exists()) {
                 return self::defaults();
             }
+            $rows = DB::table('role_permissions')->get(['role', 'permission']);
+            $savedRoles = $rows->where('permission', '_saved')->pluck('role')->all();
+            $known = $rows->where('role', '_known')->pluck('permission')->all();
+            $defaults = self::defaults();
             $out = array_fill_keys(self::EDITABLE, []);
-            foreach (DB::table('role_permissions')->get(['role', 'permission']) as $r) {
+            foreach ($rows as $r) {
                 if (isset(self::ALL[$r->permission]) && isset($out[$r->role])) {
                     $out[$r->role][] = $r->permission;
+                }
+            }
+            foreach (self::EDITABLE as $role) {
+                if (! in_array($role, $savedRoles, true)) {
+                    $out[$role] = $defaults[$role];                 // a role added after the last save
+                    continue;
+                }
+                foreach ($defaults[$role] as $perm) {                // a permission added after the last save
+                    if (! in_array($perm, $known, true) && ! in_array($perm, $out[$role], true)) {
+                        $out[$role][] = $perm;
+                    }
                 }
             }
 
@@ -106,8 +123,13 @@ class Permissions
                     }
                 }
             }
-            // keep one marker row so "nothing ticked at all" is remembered too
-            $rows[] = ['role' => '_saved', 'permission' => '_saved'];
+            // markers: which roles were saved (so "nothing ticked" is kept) and which permissions existed then
+            foreach (self::EDITABLE as $role) {
+                $rows[] = ['role' => $role, 'permission' => '_saved'];
+            }
+            foreach (array_keys(self::ALL) as $perm) {
+                $rows[] = ['role' => '_known', 'permission' => $perm];
+            }
             DB::table('role_permissions')->insert($rows);
         });
         self::flush();

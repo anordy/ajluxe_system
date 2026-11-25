@@ -19,6 +19,7 @@
         </div>
         @if ($isBoss)
             <div class="flex flex-wrap items-center gap-3">
+            @unless ($garageOnly)
             <div class="flex gap-1 rounded-xl bg-white p-1 shadow-sm ring-1 ring-ink-100" role="group" aria-label="Business">
                 @foreach (\App\Services\Analytics::BUSINESSES as $key => $label)
                     @php $on = $business === $key; $dot = ['garage' => '#2a78d6', 'spares' => '#eb6834'][$key] ?? null; @endphp
@@ -27,6 +28,7 @@
                         @if ($dot) <span class="h-2 w-2 rounded-full" style="background: {{ $dot }}"></span> @endif {{ $label }}</button>
                 @endforeach
             </div>
+            @endunless
             <div class="flex flex-wrap gap-1 rounded-xl bg-white p-1 shadow-sm ring-1 ring-ink-100" role="group" aria-label="Period">
                 @foreach (\App\Livewire\Dashboard::RANGES as $key => $label)
                     <button type="button" wire:click="$set('range', '{{ $key }}')" aria-pressed="{{ $range === $key ? 'true' : 'false' }}"
@@ -217,6 +219,7 @@
                     @php
                         $now = [];
                         if ($business !== 'spares') $now[] = ['Vehicles in workshop', number_format($counts['workshop']), route('job-cards.index'), ''];
+                        if ($business !== 'spares' && $user->allows('bookings')) $now[] = ['New bookings', number_format($counts['bookings']), route('bookings.index'), $counts['bookings'] ? 'text-brand-600' : ''];
                         if ($business !== 'garage') {
                             $now[] = ['New online orders', number_format($counts['newOrders']), route('orders.index'), $counts['newOrders'] ? 'text-brand-600' : ''];
                             $now[] = ['Stock value (cost)', money($data['stockValue']), route('stock.index'), ''];
@@ -238,6 +241,7 @@
                             <p class="mb-3 text-xs font-medium text-ink-500">Open job cards by stage</p>
                             <x-status-bars :rows="$workshop" />
                         </div>
+                        @include('livewire.partials.upcoming-bookings')
                     @endif
                 </div>
             </div>
@@ -251,12 +255,14 @@
             if ($user->allows('stock.view', 'stock.adjust')) { $tiles[] = ['Low stock', number_format($counts['low']), 'at or below re-order level']; $tiles[] = ['Out of stock', number_format($counts['out']), 'active parts']; }
             $jobsOk = $user->allows('job_cards.view', 'job_cards.manage');
             if ($jobsOk) $tiles[] = [$user->hasRole('mechanic') ? 'My open jobs' : 'Open jobs', $counts['workshop'], 'not yet delivered'];
+            if ($user->allows('bookings')) $tiles[] = ['New garage bookings', number_format($counts['bookings']), 'from the website'];
         @endphp
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             @foreach ($tiles as [$label, $value, $sub])
                 <div class="card p-5"><p class="text-sm font-medium text-ink-500">{{ $label }}</p><p class="mt-1 text-2xl font-extrabold tabular-nums text-ink-900">{{ $value }}</p><p class="mt-1 text-xs text-ink-400">{{ $sub }}</p></div>
             @endforeach
         </div>
+        @if ($upcoming->isNotEmpty()) <div class="card p-5 lg:max-w-2xl">@include('livewire.partials.upcoming-bookings')</div> @endif
         @if ($jobsOk)
             <div class="card p-5 lg:max-w-2xl">
                 <h3 class="card-title mb-4">Open job cards by stage</h3>

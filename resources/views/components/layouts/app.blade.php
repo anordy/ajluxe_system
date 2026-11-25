@@ -20,6 +20,7 @@
             ['Dashboard', 'dashboard', 'home', []],
         ],
         'Garage' => [
+            ['Bookings', 'bookings.index', 'clock', ['bookings']],
             ['Job Cards', 'job-cards.*', 'clipboard', ['job_cards.view', 'job_cards.manage']],
             ['Customers', 'customers.*', 'users', ['customers']],
             ['Vehicles', 'vehicles.index', 'car', ['vehicles.view', 'vehicles.manage']],
@@ -55,6 +56,7 @@
             ['Import Data', 'import.index', 'upload', 'admin'],
         ],
     ];
+    $newBookings = $user->allows('bookings') ? \App\Models\GarageBooking::where('status', 'new')->count() : 0;
     $newOrders = $user->allows('orders') ? \App\Models\Order::where('status', 'pending')->count() : 0;
     $newRequests = $user->allows('website.requests', 'website.manage') ? \App\Models\CarRequest::where('status', 'new')->count() : 0;
     $newImports = $user->allows('website.requests', 'website.manage') ? \App\Models\ImportRequest::where('status', 'new')->count() : 0;
@@ -82,6 +84,7 @@
                                 <x-icon :name="$icon" class="h-[18px] w-[18px]" /> {{ $label }}
                                 @if ($route === 'imports.index' && $newImports) <span class="ml-auto rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ $newImports }}</span> @endif
                                 @if ($route === 'website.requests' && $newRequests) <span class="ml-auto rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ $newRequests }}</span> @endif
+                                @if ($route === 'bookings.index' && $newBookings) <span class="ml-auto rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ $newBookings }}</span> @endif
                                 @if ($route === 'orders.index' && $newOrders) <span class="ml-auto rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ $newOrders }}</span> @endif
                             </a>
                         @else

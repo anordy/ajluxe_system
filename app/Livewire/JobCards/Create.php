@@ -21,6 +21,10 @@ class Create extends Component
     #[Url(as: 'vehicle')]
     public ?int $vehicle_id = null;
 
+    /** Opened from a website garage booking: its details are filled in and the booking is linked. */
+    #[Url(as: 'booking')]
+    public ?int $booking_id = null;
+
     public string $customerSearch = '';
     public ?int $mechanic_id = null;
     public string $priority = 'Normal';
@@ -39,6 +43,20 @@ class Create extends Component
         if ($this->vehicle_id && ($v = Vehicle::find($this->vehicle_id))) {
             $this->customer_id = $v->customer_id;
             $this->odometer_in = (string) ($v->odometer ?? '');
+        }
+        if ($this->booking_id && ($b = \App\Models\GarageBooking::find($this->booking_id))) {
+            $this->complaints = $b->work;
+            $this->promised_at = '';
+            $v = $b->plate ? Vehicle::where('reg_no', $b->plate)->first() : null;
+            if ($v) {
+                $this->pickPlate($v->id);
+            } elseif ($b->customer_id) {
+                $this->pickCustomer($b->customer_id);
+            } else {
+                $this->customerSearch = $b->phone;   // not a customer yet: search shows "add new" with the phone
+            }
+        } else {
+            $this->booking_id = null;
         }
     }
 
@@ -124,6 +142,10 @@ class Create extends Component
         // keep the vehicle's odometer up to date
         if ($this->odometer_in !== '' && (int) $this->odometer_in > (int) $vehicle->odometer) {
             $vehicle->update(['odometer' => (int) $this->odometer_in]);
+        }
+
+        if ($this->booking_id && ($b = \App\Models\GarageBooking::find($this->booking_id))) {
+            $b->update(['status' => 'booked_in', 'job_card_id' => $job->id, 'customer_id' => $this->customer_id, 'handled_by' => auth()->id(), 'handled_at' => now()]);
         }
 
         session()->flash('toast', ['message' => "Job card {$job->number} opened.", 'type' => 'success']);
