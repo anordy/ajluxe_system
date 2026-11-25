@@ -73,7 +73,7 @@ class Part extends Model
     /** Throws if $rate is below the minimum selling price and the user is not an admin. */
     public function assertPriceAllowed(float $rate): void
     {
-        if ($this->minPrice() > 0 && $rate + 0.001 < $this->minPrice() && ! auth()->user()?->hasRole('admin')) {
+        if ($this->minPrice() > 0 && $rate + 0.001 < $this->minPrice() && ! auth()->user()?->allows('price.below_min')) {
             throw new \App\Exceptions\BusinessRuleException("The lowest price for {$this->name} is ".money($this->minPrice()).'. Ask an admin to sell below it.');
         }
     }

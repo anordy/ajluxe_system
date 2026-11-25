@@ -15,7 +15,7 @@ class Index extends Component
 {
     use ManagesRecords;
 
-    protected array $manageRoles = ['admin', 'manager'];
+    protected string $managePermission = 'mechanics';
 
     public bool $showForm = false;
     public ?int $editingId = null;

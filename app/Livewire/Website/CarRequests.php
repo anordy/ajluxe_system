@@ -17,7 +17,7 @@ class CarRequests extends Component
 {
     use ManagesRecords, WithPagination;
 
-    protected array $manageRoles = ['admin', 'manager', 'staff'];
+    protected string $managePermission = 'website.requests';
 
     #[Url(except: 'new')]
     public string $tab = 'new';
@@ -76,7 +76,7 @@ class CarRequests extends Component
 
     public function delete(int $id): void
     {
-        abort_unless(auth()->user()->hasRole('admin', 'manager'), 403);
+        abort_unless(auth()->user()->allows('website.manage'), 403);
         $r = CarRequest::findOrFail($id);
         $r->delete();
         Audit::log('Website', 'CAR_REQUEST_DELETE', $r->car());

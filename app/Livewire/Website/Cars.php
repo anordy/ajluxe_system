@@ -19,7 +19,7 @@ class Cars extends Component
 {
     use ManagesRecords, WithPagination;
 
-    protected array $manageRoles = ['admin', 'manager'];
+    protected string $managePermission = 'website.manage';
 
     #[Url(except: '')]
     public string $search = '';

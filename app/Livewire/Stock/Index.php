@@ -52,7 +52,7 @@ class Index extends Component
 
     public function canAdjust(): bool
     {
-        return auth()->user()->hasRole('admin', 'manager');
+        return auth()->user()->allows('stock.adjust');
     }
 
     public function openAdjust(?int $partId = null): void

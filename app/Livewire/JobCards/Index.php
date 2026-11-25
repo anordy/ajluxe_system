@@ -66,7 +66,7 @@ class Index extends Component
             'counts'    => $counts,
             'activeCount' => $counts->except(JobCard::CLOSED)->sum(),
             'mechanics' => Mechanic::active()->orderBy('name')->get(['id', 'name']),
-            'canCreate' => auth()->user()->hasRole('admin', 'manager'),
+            'canCreate' => auth()->user()->allows('job_cards.manage'),
             'customerName' => $this->customer ? \App\Models\Customer::whereKey((int) $this->customer)->value('name') : null,
         ]);
     }

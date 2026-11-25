@@ -243,18 +243,21 @@
             </div>
         </div>
     @else
-        {{-- staff and mechanics: figures without money --}}
+        {{-- without "See sales, profit and stock value": simple figures for what this role works on --}}
+        @php
+            $tiles = [];
+            if ($user->allows('pos')) $tiles[] = ['Shop sales today', money($counts['shopToday']), $counts['salesToday'].' '.($counts['salesToday'] === 1 ? 'sale' : 'sales')];
+            if ($user->allows('orders')) $tiles[] = ['New online orders', number_format($counts['newOrders']), 'waiting to be confirmed'];
+            if ($user->allows('stock.view', 'stock.adjust')) { $tiles[] = ['Low stock', number_format($counts['low']), 'at or below re-order level']; $tiles[] = ['Out of stock', number_format($counts['out']), 'active parts']; }
+            $jobsOk = $user->allows('job_cards.view', 'job_cards.manage');
+            if ($jobsOk) $tiles[] = [$user->hasRole('mechanic') ? 'My open jobs' : 'Open jobs', $counts['workshop'], 'not yet delivered'];
+        @endphp
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            @if ($user->hasRole('staff'))
-                @foreach ([['Shop sales today', money($counts['shopToday']), $counts['salesToday'].' '.($counts['salesToday'] === 1 ? 'sale' : 'sales')], ['New online orders', number_format($counts['newOrders']), 'waiting to be confirmed'], ['Low stock', number_format($counts['low']), 'at or below re-order level'], ['Out of stock', number_format($counts['out']), 'active parts']] as [$label, $value, $sub])
-                    <div class="card p-5"><p class="text-sm font-medium text-ink-500">{{ $label }}</p><p class="mt-1 text-2xl font-extrabold tabular-nums text-ink-900">{{ $value }}</p><p class="mt-1 text-xs text-ink-400">{{ $sub }}</p></div>
-                @endforeach
-            @endif
-            @if ($user->hasRole('mechanic'))
-                <div class="card p-5"><p class="text-sm font-medium text-ink-500">My open jobs</p><p class="mt-1 text-2xl font-extrabold tabular-nums text-ink-900">{{ $counts['workshop'] }}</p><p class="mt-1 text-xs text-ink-400">not yet delivered</p></div>
-            @endif
+            @foreach ($tiles as [$label, $value, $sub])
+                <div class="card p-5"><p class="text-sm font-medium text-ink-500">{{ $label }}</p><p class="mt-1 text-2xl font-extrabold tabular-nums text-ink-900">{{ $value }}</p><p class="mt-1 text-xs text-ink-400">{{ $sub }}</p></div>
+            @endforeach
         </div>
-        @if ($user->hasRole('mechanic'))
+        @if ($jobsOk)
             <div class="card p-5 lg:max-w-2xl">
                 <h3 class="card-title mb-4">Open job cards by stage</h3>
                 <x-status-bars :rows="$workshop" />

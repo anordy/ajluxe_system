@@ -35,7 +35,7 @@ class Create extends Component
 
     public function mount(): void
     {
-        abort_unless(auth()->user()->hasRole('admin', 'manager'), 403);
+        abort_unless(auth()->user()->allows('job_cards.manage'), 403);
         if ($this->vehicle_id && ($v = Vehicle::find($this->vehicle_id))) {
             $this->customer_id = $v->customer_id;
             $this->odometer_in = (string) ($v->odometer ?? '');
@@ -76,7 +76,7 @@ class Create extends Component
 
     public function save(JobCardManager $manager)
     {
-        abort_unless(auth()->user()->hasRole('admin', 'manager'), 403);
+        abort_unless(auth()->user()->allows('job_cards.manage'), 403);
         $this->validate([
             'customer_id'      => 'required|exists:customers,id',
             'vehicle_id'       => 'required|exists:vehicles,id',

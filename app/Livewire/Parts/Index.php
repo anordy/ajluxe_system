@@ -24,7 +24,7 @@ class Index extends Component
     use ManagesRecords, WithPagination;
 
     /** Add/edit parts and prices. Sales staff and mechanics can look parts up (no cost prices). */
-    protected array $manageRoles = ['admin', 'manager'];
+    protected string $managePermission = 'parts.manage';
 
     #[Url(except: '')]
     public string $search = '';
@@ -66,7 +66,7 @@ class Index extends Component
 
     public function canSeeCost(): bool
     {
-        return (bool) auth()->user()?->hasRole('admin', 'manager');
+        return (bool) auth()->user()?->allows('parts.manage');
     }
 
     public function create(): void

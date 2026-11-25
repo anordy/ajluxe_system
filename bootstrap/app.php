@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role'    => \App\Http\Middleware\EnsureRole::class,
+            'perm'    => \App\Http\Middleware\EnsurePermission::class,
             'account' => \App\Http\Middleware\EnsureAccountUsable::class,
             'shop.locale' => \App\Http\Middleware\SetShopLocale::class,
             'shop.host'   => \App\Http\Middleware\ShopHost::class,

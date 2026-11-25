@@ -54,7 +54,7 @@ class Show extends Component
 
     public function canPrice(): bool
     {
-        return auth()->user()->hasRole('admin', 'manager');
+        return auth()->user()->allows('job_cards.manage');
     }
 
     private function guardPrice(): void
@@ -341,7 +341,7 @@ class Show extends Component
 
     public function saveWorkNotes(): void
     {
-        abort_unless(auth()->user()->hasRole('admin', 'manager', 'mechanic'), 403);
+        abort_unless(auth()->user()->allows('job_cards.view', 'job_cards.manage'), 403);
         $this->validate(['workNotes' => 'nullable|string|max:5000']);
         if ($this->job->status === JobCard::CANCELLED) {
             return;

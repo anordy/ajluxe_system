@@ -15,7 +15,7 @@ class VehicleImportController extends Controller
 {
     public function __invoke(Request $request)
     {
-        abort_unless($request->user()?->hasRole('admin', 'manager'), 403);
+        abort_unless($request->user()?->allows('website.manage'), 403);
         $back = redirect()->route('website.cars');
         $file = $request->file('file');
         if (! $file || ! $file->isValid() || ! in_array(strtolower($file->getClientOriginalExtension()), ['csv', 'txt'], true)) {

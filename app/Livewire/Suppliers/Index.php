@@ -16,7 +16,7 @@ class Index extends Component
 {
     use ManagesRecords, WithPagination;
 
-    protected array $manageRoles = ['admin', 'manager'];
+    protected string $managePermission = 'suppliers';
 
     #[Url(except: '')]
     public string $search = '';

@@ -14,49 +14,50 @@
 </head>
 @php
     $user = auth()->user();
-    // [label, route name or null (= coming in a later phase), icon, roles allowed]
+    // [label, route name, icon, permissions (any of; [] = everyone) or 'admin' = Administrator only]
     $nav = [
         'Main' => [
-            ['Dashboard', 'dashboard', 'home', ['admin', 'manager', 'mechanic', 'staff']],
+            ['Dashboard', 'dashboard', 'home', []],
         ],
         'Garage' => [
-            ['Job Cards', 'job-cards.*', 'clipboard', ['admin', 'manager', 'mechanic']],
-            ['Customers', 'customers.*', 'users', ['admin', 'manager', 'staff']],
-            ['Vehicles', 'vehicles.index', 'car', ['admin', 'manager', 'staff', 'mechanic']],
-            ['Services', 'services.index', 'wrench', ['admin', 'manager']],
-            ['Mechanics', 'mechanics.index', 'users', ['admin', 'manager']],
+            ['Job Cards', 'job-cards.*', 'clipboard', ['job_cards.view', 'job_cards.manage']],
+            ['Customers', 'customers.*', 'users', ['customers']],
+            ['Vehicles', 'vehicles.index', 'car', ['vehicles.view', 'vehicles.manage']],
+            ['Services', 'services.index', 'wrench', ['services']],
+            ['Mechanics', 'mechanics.index', 'users', ['mechanics']],
         ],
         'Spare Parts' => [
-            ['POS / New Sale', 'pos', 'cart', ['admin', 'manager', 'staff']],
-            ['Online Orders', 'orders.index', 'doc', ['admin', 'manager', 'staff']],
-            ['Parts Catalogue', 'parts.index', 'box', ['admin', 'manager', 'staff', 'mechanic']],
-            ['Stock Register', 'stock.index', 'list', ['admin', 'manager', 'staff']],
-            ['Purchase Orders', 'purchase-orders.*', 'truck', ['admin', 'manager']],
-            ['Suppliers', 'suppliers.index', 'truck', ['admin', 'manager']],
-            ['Returns', 'returns.index', 'return', ['admin', 'manager']],
+            ['POS / New Sale', 'pos', 'cart', ['pos']],
+            ['Online Orders', 'orders.index', 'doc', ['orders']],
+            ['Parts Catalogue', 'parts.index', 'box', ['parts.view', 'parts.manage']],
+            ['Stock Register', 'stock.index', 'list', ['stock.view', 'stock.adjust']],
+            ['Purchase Orders', 'purchase-orders.*', 'truck', ['purchases']],
+            ['Suppliers', 'suppliers.index', 'truck', ['suppliers']],
+            ['Returns', 'returns.index', 'return', ['returns']],
         ],
         'Website' => [
-            ['Car Requests', 'website.requests', 'car', ['admin', 'manager', 'staff']],
-            ['Import Orders', 'imports.index', 'truck', ['admin', 'manager', 'staff']],
-            ['Banners', 'website.banners', 'image', ['admin', 'manager']],
-            ['Car List', 'website.cars', 'list', ['admin', 'manager']],
-            ['Website Texts', 'website.texts', 'type', ['admin', 'manager']],
+            ['Car Requests', 'website.requests', 'car', ['website.requests', 'website.manage']],
+            ['Import Orders', 'imports.index', 'truck', ['website.requests', 'website.manage']],
+            ['Banners', 'website.banners', 'image', ['website.manage']],
+            ['Car List', 'website.cars', 'list', ['website.manage']],
+            ['Website Texts', 'website.texts', 'type', ['website.manage']],
         ],
         'Finance' => [
-            ['Invoices & Payments', 'invoices.index', 'doc', ['admin', 'manager', 'staff']],
-            ['Reports', 'reports.index', 'chart', ['admin', 'manager']],
+            ['Invoices & Payments', 'invoices.*', 'doc', ['sales.view']],
+            ['Reports', 'reports.index', 'chart', ['reports']],
         ],
         'Administration' => [
-            ['Users', 'users.index', 'shield', ['admin']],
-            ['Lists', 'lists.index', 'list', ['admin', 'manager']],
-            ['Settings', 'settings', 'cog', ['admin']],
-            ['Audit Log', 'audit.index', 'clock', ['admin']],
-            ['Import Data', 'import.index', 'upload', ['admin']],
+            ['Users', 'users.index', 'shield', 'admin'],
+            ['Roles & Permissions', 'roles.index', 'shield', 'admin'],
+            ['Lists', 'lists.index', 'list', ['lists']],
+            ['Settings', 'settings', 'cog', 'admin'],
+            ['Audit Log', 'audit.index', 'clock', 'admin'],
+            ['Import Data', 'import.index', 'upload', 'admin'],
         ],
     ];
-    $newOrders = $user->hasRole('admin', 'manager', 'staff') ? \App\Models\Order::where('status', 'pending')->count() : 0;
-    $newRequests = $user->hasRole('admin', 'manager', 'staff') ? \App\Models\CarRequest::where('status', 'new')->count() : 0;
-    $newImports = $user->hasRole('admin', 'manager', 'staff') ? \App\Models\ImportRequest::where('status', 'new')->count() : 0;
+    $newOrders = $user->allows('orders') ? \App\Models\Order::where('status', 'pending')->count() : 0;
+    $newRequests = $user->allows('website.requests', 'website.manage') ? \App\Models\CarRequest::where('status', 'new')->count() : 0;
+    $newImports = $user->allows('website.requests', 'website.manage') ? \App\Models\ImportRequest::where('status', 'new')->count() : 0;
 @endphp
 <body class="min-h-screen" x-data="{ sidebar: false }">
 <div class="flex min-h-screen">
@@ -72,7 +73,7 @@
 
         <nav class="flex-1 overflow-y-auto px-3 pb-6">
             @foreach ($nav as $section => $items)
-                @php $visible = array_filter($items, fn ($i) => $user->hasRole(...$i[3])); @endphp
+                @php $visible = array_filter($items, fn ($i) => $i[3] === 'admin' ? $user->hasRole('admin') : ($i[3] === [] || $user->allows(...$i[3]))); @endphp
                 @if ($visible)
                     <div class="nav-section">{{ $section }}</div>
                     @foreach ($visible as [$label, $route, $icon])

@@ -14,7 +14,7 @@ class Show extends Component
 {
     use ManagesRecords;
 
-    protected array $manageRoles = ['admin', 'manager', 'staff'];
+    protected string $managePermission = 'customers';
 
     public Customer $customer;
 
@@ -79,7 +79,7 @@ class Show extends Component
             'types'    => list_options('customer_type'),
             'jobs'     => $this->customer->jobCards()->with('vehicle:id,reg_no')->latest('id')->get(),
             'invoices' => $this->customer->invoices()->latest('id')->get(),
-            'canJobs'  => auth()->user()->hasRole('admin', 'manager'),
+            'canJobs'  => auth()->user()->allows('job_cards.manage'),
         ])->title($this->customer->name);
     }
 }

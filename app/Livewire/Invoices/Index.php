@@ -53,7 +53,7 @@ class Index extends Component
 
     public function canVoid(): bool
     {
-        return auth()->user()->hasRole('admin', 'manager');
+        return auth()->user()->allows('sales.manage');
     }
 
     public function openVoid(int $id): void

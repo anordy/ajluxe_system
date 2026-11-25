@@ -4,7 +4,10 @@
             <x-icon name="search" class="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-ink-300" />
             <input type="search" wire:model.live.debounce.300ms="search" class="input pl-9" placeholder="Search name, username, phone…">
         </div>
-        <button class="btn-primary" wire:click="create"><x-icon name="plus" class="h-4 w-4" /> New User</button>
+        <div class="flex gap-2">
+            <a href="{{ route('roles.index') }}" wire:navigate class="btn-light"><x-icon name="shield" class="h-4 w-4" /> Roles &amp; permissions</a>
+            <button class="btn-primary" wire:click="create"><x-icon name="plus" class="h-4 w-4" /> New User</button>
+        </div>
     </div>
 
     @error('role') <div class="rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm font-medium text-brand-700">{{ $message }}</div> @enderror

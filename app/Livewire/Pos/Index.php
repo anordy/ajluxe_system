@@ -37,7 +37,7 @@ class Index extends Component
 
     public function canEditPrice(): bool
     {
-        return auth()->user()->hasRole('admin', 'manager');
+        return auth()->user()->allows('price.edit');
     }
 
     // ---------------------------------------------------------- cart
@@ -108,7 +108,7 @@ class Index extends Component
         if (isset($this->cart[$key])) {
             $rate = round(max(0, (float) $rate), 2);
             $min = (float) ($this->cart[$key]['min'] ?? 0);
-            if ($min > 0 && $rate < $min && ! auth()->user()->hasRole('admin')) {
+            if ($min > 0 && $rate < $min && ! auth()->user()->allows('price.below_min')) {
                 $rate = $min;
                 $this->toast('The lowest price for '.$this->cart[$key]['name'].' is '.money($min).'.', 'error');
             }
@@ -149,7 +149,7 @@ class Index extends Component
 
     public function checkout(SalesManager $sales): void
     {
-        abort_unless(auth()->user()->hasRole('admin', 'manager', 'staff'), 403);
+        abort_unless(auth()->user()->allows('pos'), 403);
         $this->validate([
             'discount'     => 'nullable|numeric|min:0',
             'tax_rate'     => 'nullable|numeric|min:0|max:100',

@@ -16,7 +16,7 @@ class Index extends Component
 {
     use ManagesRecords;
 
-    protected array $manageRoles = ['admin', 'manager'];
+    protected string $managePermission = 'services';
 
     #[Url(except: '')]
     public string $search = '';

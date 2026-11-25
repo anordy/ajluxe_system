@@ -17,7 +17,7 @@ class Banners extends Component
 {
     use ManagesRecords;
 
-    protected array $manageRoles = ['admin', 'manager'];
+    protected string $managePermission = 'website.manage';
 
     public bool $showForm = false;
     public ?int $editingId = null;

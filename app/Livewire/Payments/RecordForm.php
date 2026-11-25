@@ -84,7 +84,7 @@ class RecordForm extends Component
 
     private function authorizeUser(): void
     {
-        abort_unless(auth()->user()->hasRole('admin', 'manager', 'staff'), 403);
+        abort_unless(auth()->user()->allows('sales.view', 'pos', 'job_cards.manage'), 403);
     }
 
     public function render()

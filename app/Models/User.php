@@ -47,6 +47,18 @@ class User extends Authenticatable
         return $this->role === self::ADMIN;
     }
 
+    /** Has any of these permissions (see App\Support\Permissions). allows('pos'), allows('sales.view', 'pos') */
+    public function allows(string ...$permissions): bool
+    {
+        foreach ($permissions as $perm) {
+            if (\App\Support\Permissions::roleHas((string) $this->role, $perm)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /** hasRole('admin', 'manager') */
     public function hasRole(string ...$roles): bool
     {

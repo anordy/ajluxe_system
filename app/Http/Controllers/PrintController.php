@@ -14,7 +14,7 @@ class PrintController extends Controller
     /** Workshop copy: vehicle, complaint, items without prices, sign-off boxes. */
     public function jobCard(JobCard $jobCard)
     {
-        $this->allow('admin', 'manager', 'mechanic');
+        $this->allow('job_cards.view', 'job_cards.manage');
         $jobCard->load(['customer', 'vehicle', 'mechanic', 'items.part', 'items.service']);
 
         return view('print.job-card', ['job' => $jobCard, 'title' => 'JOB CARD']);
@@ -23,7 +23,7 @@ class PrintController extends Controller
     /** Quotation from the job card's current items — no signatures. */
     public function proforma(JobCard $jobCard)
     {
-        $this->allow('admin', 'manager');
+        $this->allow('job_cards.manage');
         abort_if($jobCard->status === JobCard::CANCELLED, 404);
         $jobCard->load(['customer', 'vehicle', 'items.part', 'items.service']);
 
@@ -48,7 +48,7 @@ class PrintController extends Controller
     /** Tax invoice with signatures. */
     public function invoice(Invoice $invoice)
     {
-        $this->allow('admin', 'manager', 'staff');
+        $this->allow('sales.view', 'pos', 'job_cards.manage');
         $invoice->load(['customer', 'items', 'jobCard.vehicle', 'jobCard.items.service', 'jobCard.items.part', 'payments']);
 
         // garage invoices print with labour hours / part units from the job card lines
@@ -78,7 +78,7 @@ class PrintController extends Controller
     /** 80mm thermal receipt for counter sales. */
     public function thermal(Invoice $invoice)
     {
-        $this->allow('admin', 'manager', 'staff');
+        $this->allow('sales.view', 'pos');
         $invoice->load(['customer', 'items', 'payments', 'creator']);
 
         return view('print.thermal', ['inv' => $invoice]);
@@ -86,7 +86,7 @@ class PrintController extends Controller
 
     public function purchaseOrder(PurchaseOrder $purchaseOrder)
     {
-        $this->allow('admin', 'manager');
+        $this->allow('purchases');
         $purchaseOrder->load(['supplier', 'items.part']);
 
         return view('print.purchase-order', ['po' => $purchaseOrder, 'title' => 'PURCHASE ORDER']);
@@ -94,7 +94,7 @@ class PrintController extends Controller
 
     public function stockReturn(StockReturn $stockReturn)
     {
-        $this->allow('admin', 'manager');
+        $this->allow('returns');
         $stockReturn->load(['items.part', 'invoice', 'purchaseOrder', 'customer', 'supplier', 'creator']);
 
         return view('print.return', ['r' => $stockReturn, 'title' => $stockReturn->isCustomer() ? 'CREDIT NOTE' : 'DEBIT NOTE']);
@@ -102,14 +102,14 @@ class PrintController extends Controller
 
     public function receipt(Payment $payment)
     {
-        $this->allow('admin', 'manager', 'staff');
+        $this->allow('sales.view', 'pos', 'job_cards.manage');
         $payment->load(['customer', 'invoice', 'jobCard.vehicle', 'creator']);
 
         return view('print.receipt', ['p' => $payment, 'title' => 'PAYMENT RECEIPT']);
     }
 
-    private function allow(string ...$roles): void
+    private function allow(string ...$permissions): void
     {
-        abort_unless(auth()->user()?->hasRole(...$roles), 403);
+        abort_unless(auth()->user()?->allows(...$permissions), 403);
     }
 }

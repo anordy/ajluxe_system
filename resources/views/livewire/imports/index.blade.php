@@ -103,7 +103,7 @@
         @endif
         <x-slot:footer>
             @if ($view && $this->canManage())
-                @if (auth()->user()->hasRole('admin', 'manager'))
+                @if (auth()->user()->allows('website.manage'))
                     <button type="button" class="btn-light mr-auto !text-brand-600" wire:click="delete({{ $view->id }})" wire:confirm="Delete request {{ $view->ref }}?">Delete</button>
                 @endif
                 <button type="button" class="btn-light" @click="open = false">Cancel</button>

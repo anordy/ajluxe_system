@@ -30,7 +30,7 @@ class Form extends Component
     #[On('open-vehicle-form')]
     public function open(?int $id = null, ?int $customerId = null): void
     {
-        abort_unless(auth()->user()->hasRole('admin', 'manager', 'staff'), 403);
+        abort_unless(auth()->user()->allows('vehicles.manage'), 403);
         $this->resetValidation();
         $this->reset(['customerSearch']);
         $this->vehicleId = $id;
@@ -56,7 +56,7 @@ class Form extends Component
 
     public function save(): void
     {
-        abort_unless(auth()->user()->hasRole('admin', 'manager', 'staff'), 403);
+        abort_unless(auth()->user()->allows('vehicles.manage'), 403);
         $this->form['reg_no'] = Vehicle::normalizeReg((string) $this->form['reg_no']);
 
         $this->validate([

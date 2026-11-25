@@ -18,7 +18,7 @@ class Index extends Component
 {
     use ManagesRecords, WithPagination;
 
-    protected array $manageRoles = ['admin', 'manager', 'staff'];
+    protected string $managePermission = 'website.requests';
 
     #[Url(except: 'open')]
     public string $tab = 'open';
@@ -85,7 +85,7 @@ class Index extends Component
 
     public function delete(int $id): void
     {
-        abort_unless(auth()->user()->hasRole('admin', 'manager'), 403);
+        abort_unless(auth()->user()->allows('website.manage'), 403);
         $r = ImportRequest::findOrFail($id);
         $r->delete();
         Audit::log('Imports', 'IMPORT_DELETE', $r->ref);

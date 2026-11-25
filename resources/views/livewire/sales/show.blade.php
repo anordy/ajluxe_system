@@ -22,7 +22,7 @@
             @endif
             @if ($counter) <a href="{{ route('print.thermal', $inv) }}" target="_blank" class="btn-dark btn-sm"><x-icon name="printer" class="h-4 w-4" /> Receipt (80mm)</a> @endif
             <a href="{{ route('print.invoice', $inv) }}" target="_blank" class="btn-light btn-sm"><x-icon name="printer" class="h-4 w-4" /> A4 invoice</a>
-            @if ($canManage && ! $cancelled)
+            @if ($canReturn && ! $cancelled)
                 <a href="{{ route('returns.index', ['invoice' => $inv->number]) }}" wire:navigate class="btn-light btn-sm"><x-icon name="return" class="h-4 w-4" /> Return items</a>
             @endif
         </div>

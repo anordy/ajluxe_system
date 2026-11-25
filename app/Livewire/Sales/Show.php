@@ -17,8 +17,7 @@ class Show extends Component
 
     public function mount(Invoice $invoice): void
     {
-        // mechanics only see garage work, not the shop's sales
-        abort_if(auth()->user()->hasRole('mechanic') && ! auth()->user()->hasRole('admin', 'manager', 'staff'), 403);
+        abort_unless(auth()->user()->allows('sales.view', 'pos'), 403);
         $this->invoice = $invoice;
     }
 
@@ -27,7 +26,7 @@ class Show extends Component
     /** Admin / manager: undo a payment that was entered by mistake. */
     public function undoPayment(int $paymentId, \App\Services\JobCardManager $m): void
     {
-        abort_unless(auth()->user()->hasRole('admin', 'manager'), 403);
+        abort_unless(auth()->user()->allows('sales.manage'), 403);
         $payment = $this->invoice->payments()->whereKey($paymentId)->firstOrFail();
         try {
             $m->reversePayment($payment, $this->undoReason);
@@ -66,8 +65,9 @@ class Show extends Component
             'inv'      => $inv,
             'order'    => Order::where('invoice_id', $inv->id)->first(),
             'returned' => $returned,
-            'canManage'=> auth()->user()->hasRole('admin', 'manager'),
-            'canPay'   => auth()->user()->hasRole('admin', 'manager', 'staff'),
+            'canManage'=> auth()->user()->allows('sales.manage'),
+            'canReturn'=> auth()->user()->allows('returns'),
+            'canPay'   => auth()->user()->allows('sales.view'),
         ])->title(($inv->isCounter() ? 'Sale ' : 'Invoice ').$inv->number);
     }
 }

@@ -61,7 +61,7 @@ class Dashboard extends Component
     public function render()
     {
         $user = auth()->user();
-        $isBoss = $user->hasRole('admin', 'manager');
+        $isBoss = $user->allows('dashboard.money');
         [$from, $to, $prevFrom, $prevTo] = $this->dates();
         // a single day has no shape: show the last 14 days in the trend chart instead
         $trendFrom = $this->range === 'today' ? today()->subDays(13)->toDateString() : $from;

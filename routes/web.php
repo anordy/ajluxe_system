@@ -98,48 +98,47 @@ Route::middleware(['staff.host', 'auth:web'])->group(function () {   // staff lo
             Route::get('/audit-log', Livewire\AuditLogIndex::class)->name('audit.index');
         });
         // pictures chosen in a form are sent once, straight away (see <x-photo-input>)
-        Route::post('/pictures', \App\Http\Controllers\PictureUploadController::class)->middleware(['role:admin,manager,staff', 'throttle:60,1'])->name('pictures.upload');
-        Route::get('/lists', Livewire\Lists\Index::class)->middleware('role:admin,manager')->name('lists.index');
+        Route::post('/pictures', \App\Http\Controllers\PictureUploadController::class)->middleware(['perm:parts.manage,website.manage,vehicles.manage,customers,job_cards.manage', 'throttle:60,1'])->name('pictures.upload');
+        Route::get('/roles', Livewire\Users\Roles::class)->middleware('role:admin')->name('roles.index');
+        Route::get('/lists', Livewire\Lists\Index::class)->middleware('perm:lists')->name('lists.index');
 
         // ---- Master data (Phase 2) ----
-        Route::middleware('role:admin,manager,staff')->group(function () {
+        Route::middleware('perm:customers')->group(function () {
             Route::get('/customers', Livewire\Customers\Index::class)->name('customers.index');
             Route::get('/customers/{customer}', Livewire\Customers\Show::class)->name('customers.show');
         });
-        Route::get('/vehicles', Livewire\Vehicles\Index::class)->middleware('role:admin,manager,staff,mechanic')->name('vehicles.index');
-        Route::get('/parts', Livewire\Parts\Index::class)->middleware('role:admin,manager,staff,mechanic')->name('parts.index');
-        Route::middleware('role:admin,manager')->group(function () {
-            Route::get('/suppliers', Livewire\Suppliers\Index::class)->name('suppliers.index');
-            Route::get('/services', Livewire\Services\Index::class)->name('services.index');
-            Route::get('/mechanics', Livewire\Mechanics\Index::class)->name('mechanics.index');
-        });
+        Route::get('/vehicles', Livewire\Vehicles\Index::class)->middleware('perm:vehicles.view,vehicles.manage')->name('vehicles.index');
+        Route::get('/parts', Livewire\Parts\Index::class)->middleware('perm:parts.view,parts.manage')->name('parts.index');
+        Route::get('/suppliers', Livewire\Suppliers\Index::class)->middleware('perm:suppliers')->name('suppliers.index');
+        Route::get('/services', Livewire\Services\Index::class)->middleware('perm:services')->name('services.index');
+        Route::get('/mechanics', Livewire\Mechanics\Index::class)->middleware('perm:mechanics')->name('mechanics.index');
 
         // ---- Garage: job cards (Phase 3) ----
-        Route::middleware('role:admin,manager,mechanic')->group(function () {
+        Route::middleware('perm:job_cards.view,job_cards.manage')->group(function () {
             Route::get('/job-cards', Livewire\JobCards\Index::class)->name('job-cards.index');
-            Route::get('/job-cards/new', Livewire\JobCards\Create::class)->middleware('role:admin,manager')->name('job-cards.create');
+            Route::get('/job-cards/new', Livewire\JobCards\Create::class)->middleware('perm:job_cards.manage')->name('job-cards.create');
             Route::get('/job-cards/{jobCard}', Livewire\JobCards\Show::class)->name('job-cards.show');
         });
-        Route::get('/invoices', Livewire\Invoices\Index::class)->middleware('role:admin,manager,staff')->name('invoices.index');
-        Route::get('/invoices/{invoice}', Livewire\Sales\Show::class)->middleware('role:admin,manager,staff')->name('invoices.show');
+        Route::get('/invoices', Livewire\Invoices\Index::class)->middleware('perm:sales.view')->name('invoices.index');
+        Route::get('/invoices/{invoice}', Livewire\Sales\Show::class)->middleware('perm:sales.view,pos')->name('invoices.show');
 
         // ---- Parts shop (Phase 4) ----
-        Route::get('/pos', Livewire\Pos\Index::class)->middleware('role:admin,manager,staff')->name('pos');
-        Route::get('/orders', Livewire\Orders\Index::class)->middleware('role:admin,manager,staff')->name('orders.index');
-        Route::get('/stock', Livewire\Stock\Index::class)->middleware('role:admin,manager,staff')->name('stock.index');
-        Route::middleware('role:admin,manager')->group(function () {
+        Route::get('/pos', Livewire\Pos\Index::class)->middleware('perm:pos')->name('pos');
+        Route::get('/orders', Livewire\Orders\Index::class)->middleware('perm:orders')->name('orders.index');
+        Route::get('/stock', Livewire\Stock\Index::class)->middleware('perm:stock.view,stock.adjust')->name('stock.index');
+        Route::middleware('perm:purchases')->group(function () {
             Route::get('/purchase-orders', Livewire\PurchaseOrders\Index::class)->name('purchase-orders.index');
             Route::get('/purchase-orders/new', Livewire\PurchaseOrders\Form::class)->name('purchase-orders.create');
             Route::get('/purchase-orders/{purchaseOrder}/edit', Livewire\PurchaseOrders\Form::class)->name('purchase-orders.edit');
             Route::get('/purchase-orders/{purchaseOrder}', Livewire\PurchaseOrders\Show::class)->name('purchase-orders.show');
-            Route::get('/returns', Livewire\Returns\Index::class)->name('returns.index');
         });
+        Route::get('/returns', Livewire\Returns\Index::class)->middleware('perm:returns')->name('returns.index');
 
-        Route::get('/import-orders', Livewire\Imports\Index::class)->middleware('role:admin,manager,staff')->name('imports.index');
+        Route::get('/import-orders', Livewire\Imports\Index::class)->middleware('perm:website.requests,website.manage')->name('imports.index');
 
         // ---- Website content ----
-        Route::get('/website/car-requests', Livewire\Website\CarRequests::class)->middleware('role:admin,manager,staff')->name('website.requests');
-        Route::middleware('role:admin,manager')->prefix('website')->name('website.')->group(function () {
+        Route::get('/website/car-requests', Livewire\Website\CarRequests::class)->middleware('perm:website.requests,website.manage')->name('website.requests');
+        Route::middleware('perm:website.manage')->prefix('website')->name('website.')->group(function () {
             Route::get('/banners', Livewire\Website\Banners::class)->name('banners');
             Route::get('/cars', Livewire\Website\Cars::class)->name('cars');
             Route::post('/cars/import', \App\Http\Controllers\VehicleImportController::class)->name('cars.import');
@@ -158,7 +157,7 @@ Route::middleware(['staff.host', 'auth:web'])->group(function () {   // staff lo
         });
 
         // ---- Reports & import (Phase 5) ----
-        Route::middleware('role:admin,manager')->group(function () {
+        Route::middleware('perm:reports')->group(function () {
             Route::get('/reports', Livewire\Reports\Index::class)->name('reports.index');
             Route::get('/reports/export/{report}', [ReportExportController::class, '__invoke'])->name('reports.export');
         });
