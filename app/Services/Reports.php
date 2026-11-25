@@ -256,7 +256,7 @@ class Reports
             ->map(fn ($r) => ['sku' => $r->sku, 'name' => $r->name, 'unit' => $r->unit, 'stock' => (float) $r->stock_qty, 'qty' => (float) $r->qty,
                 'revenue' => (float) $r->revenue, 'profit' => (float) $r->revenue - (float) $r->cost])->all();
 
-        $low = DB::table('parts')->whereNull('deleted_at')->where('is_active', true)->where('reorder_level', '>', 0)
+        $low = DB::table('parts')->whereNull('deleted_at')->where('is_active', true)->where('sourced', false)->where('reorder_level', '>', 0)
             ->whereColumn('stock_qty', '<=', 'reorder_level')->orderBy('name')
             ->get(['sku', 'name', 'unit', 'stock_qty', 'reorder_level', 'purchase_price'])
             ->map(fn ($r) => ['sku' => $r->sku, 'name' => $r->name, 'unit' => $r->unit, 'stock' => (float) $r->stock_qty, 'reorder' => (float) $r->reorder_level, 'cost' => (float) $r->purchase_price])->all();

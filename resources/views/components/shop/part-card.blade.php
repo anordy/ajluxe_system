@@ -1,6 +1,6 @@
 @props(['part'])
 @php
-    $stock = (int) floor(max(0, (float) $part->stock_qty));
+    $stock = $part->shopStock();
     $url = route('shop.product', [$part, $part->slug()]);
     $isPhoto = $part->imageUrl() && ! str_ends_with(strtolower((string) $part->image_path), '.svg');
     $line = $part->tyreLine() ?: ($part->specList()['Viscosity'] ?? null);

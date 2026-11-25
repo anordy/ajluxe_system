@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InvoiceItem extends Model
 {
-    protected $fillable = ['invoice_id', 'part_id', 'service_id', 'description', 'qty', 'rate', 'tax_rate', 'amount', 'cost', 'stock_cost'];
+    protected $fillable = ['invoice_id', 'part_id', 'service_id', 'description', 'qty', 'rate', 'tax_rate', 'amount', 'cost', 'stock_cost', 'sourced_qty', 'source_supplier_id'];
 
     protected function casts(): array
     {

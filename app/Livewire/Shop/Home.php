@@ -37,14 +37,14 @@ class Home extends Component
 
     public function render()
     {
-        $inStock = fn () => Part::online()->listed()->where('stock_qty', '>', 0);
+        $inStock = fn () => Part::online()->listed()->available();
         $deals = $inStock()->where('discount_percent', '>', 0)->orderByDesc('discount_percent')->limit(40)->get()
             ->filter->hasDiscount()->sortByDesc(fn ($p) => $p->discountShown())->values();
         $vehicles = ShopVehicles::all();
 
         // category tiles: departments, then the busiest types
-        $byDep = Part::online()->where('stock_qty', '>', 0)->selectRaw('category, count(*) as n')->groupBy('category')->pluck('n', 'category');
-        $bySub = Part::online()->where('stock_qty', '>', 0)->whereNotNull('subcategory')
+        $byDep = Part::online()->available()->selectRaw('category, count(*) as n')->groupBy('category')->pluck('n', 'category');
+        $bySub = Part::online()->available()->whereNotNull('subcategory')
             ->selectRaw('category, subcategory, count(*) as n')->groupBy('category', 'subcategory')->orderByDesc('n')->limit(14)->get();
         $tiles = collect(Part::shopDepartments())->filter(fn ($d) => isset($byDep[$d]))
             ->map(fn ($d) => ['label' => $d, 'count' => $byDep[$d], 'url' => route('shop.catalog', ['category' => $d]), 'art' => ProductArt::forCategory($d)])
@@ -71,7 +71,7 @@ class Home extends Component
             'makes'       => array_keys($vehicles),
             'models'      => $this->make !== '' ? ($vehicles[$this->make] ?? []) : [],
             'engines'     => ShopVehicles::engines($this->make, $this->model),
-            'brands'      => Part::online()->where('stock_qty', '>', 0)->whereNotNull('brand')->where('brand', '!=', '')
+            'brands'      => Part::online()->available()->whereNotNull('brand')->where('brand', '!=', '')
                 ->selectRaw('brand, count(*) as n')->groupBy('brand')->orderByDesc('n')->orderBy('brand')->limit(16)->pluck('n', 'brand'),
         ])->title(__('Spare parts, tyres, oil & garage'));
     }
@@ -89,7 +89,7 @@ class Home extends Component
             'text' => __('Single panels or the full car, in our workshop or spray booth. Book your car in on WhatsApp.'), 'cta' => __('Book your car in'), 'url' => route('shop.garage').'#book',
             'img' => ProductArt::dataUri('paint', ['color' => '#E31B23'])];
         if (isset($byDep['Tyres'])) {
-            $from = Part::online()->where('category', 'Tyres')->where('stock_qty', '>', 0)->get()->min(fn ($p) => $p->salePrice());
+            $from = Part::online()->where('category', 'Tyres')->available()->get()->min(fn ($p) => $p->salePrice());
             $slides[] = ['tone' => 'grey', 'kicker' => __('Tyres'), 'title' => __('New tyres from :price', ['price' => money($from)]), 'text' => __('Passenger, SUV and all-terrain sizes in stock. We fit and balance them at the garage.'),
                 'cta' => __('Find your size'), 'url' => route('shop.catalog', ['category' => 'Tyres']), 'img' => ProductArt::dataUri('tyre', ['tread' => 'at'])];
         }

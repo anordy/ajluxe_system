@@ -18,7 +18,7 @@ class Product extends Component
     {
         abort_unless($part->is_active && $part->show_online && (float) $part->selling_price > 0, 404);
         $this->part = $part;
-        $this->qty = $part->category === 'Tyres' ? max(1, min(4, (int) $part->stock_qty)) : 1;
+        $this->qty = $part->category === 'Tyres' ? max(1, min(4, $part->shopStock())) : 1;
     }
 
     public function buy()
@@ -39,7 +39,7 @@ class Product extends Component
         return view('livewire.shop.product', [
             'p'       => $p,
             'family'  => ($f = $p->family())->count() > 1 ? $f : null,
-            'related' => Part::online()->where('id', '!=', $p->id)->listed()->where('stock_qty', '>', 0)
+            'related' => Part::online()->where('id', '!=', $p->id)->listed()->available()
                 ->where(fn ($q) => $q->whereNull('variant_of')->orWhere('variant_of', '!=', $p->variant_of ?: $p->id))
                 ->where(fn ($q) => $q->where('id', '!=', $p->variant_of ?: 0))
                 ->where(fn ($q) => $q->when($p->category, fn ($q) => $q->where('category', $p->category))

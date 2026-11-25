@@ -22,7 +22,7 @@
             @foreach ($categories as $c) <option>{{ $c }}</option> @endforeach
         </select>
         <select wire:model.live="stock" class="input lg:max-w-[150px]">
-            <option value="">Any stock</option><option value="low">Low stock</option><option value="out">Out of stock</option>
+            <option value="">Any stock</option><option value="low">Low stock</option><option value="out">Out of stock</option><option value="sourced">From suppliers</option>
         </select>
         <select wire:model.live="status" class="input lg:max-w-[130px]">
             <option value="active">Active</option><option value="inactive">Inactive</option><option value="all">All</option>
@@ -61,9 +61,10 @@
                         <td class="font-mono text-xs">{{ $p->rack_location ?: '—' }}</td>
                         <td class="text-right">
                             <button wire:click="history({{ $p->id }})" title="Stock history"
-                                    class="badge {{ (float) $p->stock_qty <= 0 ? 'bg-brand-500 text-white' : ($p->isLow() ? 'bg-brand-50 text-brand-700' : 'bg-emerald-50 text-emerald-700') }}">
+                                    class="badge {{ (float) $p->stock_qty <= 0 && $p->sourced ? 'bg-sky-50 text-sky-700' : ((float) $p->stock_qty <= 0 ? 'bg-brand-500 text-white' : ($p->isLow() ? 'bg-brand-50 text-brand-700' : 'bg-emerald-50 text-emerald-700')) }}">
                                 {{ rtrim(rtrim(number_format((float) $p->stock_qty, 2), '0'), '.') }} {{ $p->unit }}
                             </button>
+                            @if ($p->sourced) <div class="mt-0.5 text-[10px] font-semibold text-sky-700" >{{ $p->sourceSupplier?->name ?? 'supplier' }}</div> @endif
                         </td>
                         @if ($this->canSeeCost()) <td class="text-right text-ink-500">{{ amount($p->purchase_price) }}</td> @endif
                         <td class="text-right font-semibold">{{ amount($p->selling_price) }}
@@ -216,6 +217,27 @@
                 <input type="checkbox" wire:model="form.is_active" class="rounded border-ink-300 text-brand-500 focus:ring-brand-400"> Active
             </label>
 
+            {{-- bought from a supplier when sold --}}
+            <div class="rounded-xl border border-sky-100 bg-sky-50/60 p-4 sm:col-span-3">
+                <label class="flex items-start gap-2 text-sm text-ink-800">
+                    <input type="checkbox" wire:model.live="form.sourced" class="mt-0.5 rounded border-ink-300 text-brand-500 focus:ring-brand-400">
+                    <span><b>Buy from supplier when sold</b><br><span class="text-ink-500">Shown on the website as in stock even when we hold none. When it sells, the missing quantity is bought from this supplier automatically (purchase order + what we owe them), so stock value only counts what we really hold.</span></span>
+                </label>
+                @if ($form['sourced'] ?? false)
+                    <div class="mt-3 grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="label">Supplier</label>
+                            <select wire:model="form.source_supplier_id" class="input">
+                                <option value="">Pick a supplier…</option>
+                                @foreach ($suppliers as $sup) <option value="{{ $sup->id }}">{{ $sup->name }}</option> @endforeach
+                            </select>
+                            @error('form.source_supplier_id') <p class="error">{{ $message }}</p> @enderror
+                        </div>
+                        <p class="self-end pb-2 text-xs text-ink-500">Put <b>their price to you</b> in "Buying price" above and <b>your price to customers</b> in "Selling price".</p>
+                    </div>
+                @endif
+            </div>
+
             {{-- website --}}
             <div class="rounded-xl border border-ink-100 bg-ink-50/60 p-4 sm:col-span-3" x-data>
                 <div class="flex flex-wrap items-center justify-between gap-3">
@@ -291,6 +313,7 @@
                     <img src="{{ $p->pictureUrl() }}" alt="" class="aspect-square w-full rounded-xl border border-ink-100 bg-ink-50 {{ $p->imageUrl() && ! str_ends_with((string) $p->image_path, '.svg') ? 'object-cover' : 'object-contain p-3' }}">
                     <div class="mt-3 flex flex-wrap gap-1.5">
                         @if ($p->show_online) <span class="badge-green">On website</span> @else <span class="badge-gray">Not on website</span> @endif
+                        @if ($p->sourced) <span class="badge bg-sky-50 text-sky-700">Supplier: {{ $p->sourceSupplier?->name ?? '—' }}</span> @endif
                         @if (! $p->is_active) <span class="badge-gray">Inactive</span> @endif
                         @if ($p->hasDiscount()) <span class="badge-red">Web −{{ $p->discountShown() }}%</span> @endif
                     </div>

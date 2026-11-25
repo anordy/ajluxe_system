@@ -23,7 +23,7 @@ trait AddsToCart
     public function buyNow(int $partId, int $qty = 1)
     {
         $part = Part::online()->find($partId);
-        if (! $part || (float) $part->stock_qty <= 0) {
+        if (! $part || $part->shopStock() <= 0) {
             $this->dispatch('toast', message: __('Sorry, this part is out of stock.'), type: 'error');
 
             return null;

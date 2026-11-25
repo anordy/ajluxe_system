@@ -36,6 +36,11 @@ class SalesManager
                 $byPart[$l['part_id']] = ($byPart[$l['part_id']] ?? 0) + (float) $l['qty'];
             }
             $parts = Part::whereIn('id', array_keys($byPart))->lockForUpdate()->get()->keyBy('id');
+            // parts we buy from a supplier when sold: buy what we don't hold first, so stock and cost stay true
+            [$sourced, $pos] = $this->buyFromSuppliers($parts, $byPart, $sale);
+            if ($sourced) {
+                $parts = Part::whereIn('id', array_keys($byPart))->lockForUpdate()->get()->keyBy('id');
+            }
             foreach ($byPart as $partId => $qty) {
                 $p = $parts[$partId] ?? throw new BusinessRuleException('A part in the cart no longer exists.');
                 if ($qty > (float) $p->stock_qty + 0.0001) {
@@ -88,11 +93,18 @@ class SalesManager
 
             foreach ($lines as $l) {
                 $part = $parts[$l['part_id']];
+                // how much of this line was bought from the supplier (shared out over repeated lines of one part)
+                $fromSupplier = min($l['qty'], $sourced[$part->id] ?? 0);
+                if ($fromSupplier > 0) {
+                    $sourced[$part->id] -= $fromSupplier;
+                }
                 InvoiceItem::create([
                     'invoice_id'  => $invoice->id,
                     'part_id'     => $part->id,
                     'description' => $l['description'] ?? $part->name,
                     'qty'         => $l['qty'],
+                    'sourced_qty' => $fromSupplier,
+                    'source_supplier_id' => $fromSupplier > 0 ? $part->source_supplier_id : null,
                     'rate'        => $l['rate'],
                     'tax_rate'    => $taxRate,
                     'amount'      => $l['amount'],
@@ -101,6 +113,10 @@ class SalesManager
                 ]);
                 StockMovement::record($part, 'counter_sale', out: $l['qty'], unitCost: (float) $part->purchase_price,
                     reference: $invoice, referenceNo: $invoice->number);
+            }
+
+            foreach ($pos as $po) {
+                $po->forceFill(['notes' => trim($po->notes.' Sale '.$invoice->number.'.')])->save();
             }
 
             if ($paid > 0) {
@@ -160,5 +176,43 @@ class SalesManager
             $invoice->forceFill(['status' => Invoice::CANCELLED, 'paid' => 0, 'balance' => 0, 'void_reason' => $reason])->save();
             Audit::log('POS', 'VOID', $invoice->number, $reason.($paid > 0 ? ' — refunded '.money($paid) : ''));
         });
+    }
+
+    /**
+     * For parts bought from a supplier when sold, buy the quantity we don't hold: one received purchase order per
+     * supplier at the part's cost price (we then owe that shop). Returns [[part_id => qty bought], [POs]].
+     */
+    private function buyFromSuppliers($parts, array $byPart, array $sale): array
+    {
+        $need = [];
+        foreach ($byPart as $partId => $qty) {
+            $p = $parts[$partId] ?? null;
+            $short = $p && $p->sourced ? round($qty - max(0, (float) $p->stock_qty), 2) : 0;
+            if ($short > 0) {
+                if (! $p->source_supplier_id) {
+                    throw new BusinessRuleException("{$p->name} is set to be bought from a supplier, but no supplier is picked. Edit the part and pick the supplier.");
+                }
+                $need[$p->source_supplier_id][$partId] = $short;
+            }
+        }
+        if (! $need) {
+            return [[], []];
+        }
+
+        $buyer = app(PurchaseManager::class);
+        $bought = [];
+        $pos = [];
+        foreach ($need as $supplierId => $items) {
+            $po = $buyer->saveDraft(null, [
+                'supplier_id' => $supplierId, 'date' => now()->toDateString(), 'expected_date' => null,
+                'notes' => 'Bought from supplier for a sale.'.(! empty($sale['notes']) ? ' '.$sale['notes'].'.' : ''),
+            ], collect($items)->map(fn ($qty, $partId) => ['part_id' => $partId, 'qty' => $qty, 'rate' => (float) $parts[$partId]->purchase_price])->values()->all());
+            $buyer->markOrdered($po);
+            $buyer->receive($po, $po->items()->pluck('qty', 'id')->all());
+            $pos[] = $po;
+            $bought += $items;
+        }
+
+        return [$bought, $pos];
     }
 }

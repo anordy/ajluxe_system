@@ -1,6 +1,6 @@
 @props(['part', 'family' => null])
 @php
-    $stock = (int) floor(max(0, (float) $part->stock_qty));
+    $stock = $part->shopStock();
     $url = route('shop.product', [$part, $part->slug()]);
     $specs = $part->specList();
     $sized = $family && $family->count() > 1;
@@ -27,7 +27,7 @@
         'n'      => $v->hasDiscount() ? (float) $v->selling_price : 0,
         'disc'   => $v->hasDiscount() ? $v->discountShown() : 0,
         'unit'   => __($isTyre ? 'tyre' : $v->unitLabel()),
-        'stock'  => (int) floor(max(0, (float) $v->stock_qty)),
+        'stock'  => $v->shopStock(),
         'img'    => $v->thumbUrl(),
     ]])->all();
     $startQty = $isTyre ? max(1, min(4, $stock)) : 1;
@@ -101,7 +101,7 @@
             <div class="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label="{{ __('Pack size') }}">
                 @foreach ($family as $fv)
                     <button type="button" role="radio" @click="sel = {{ $fv->id }}; qty = 1" :aria-checked="sel === {{ $fv->id }}"
-                            class="rounded-lg border bg-white px-1 py-2 text-center font-display text-lg font-bold leading-none transition-colors {{ $fv->stock_qty <= 0 ? 'text-[#9CA3AF]' : '' }}"
+                            class="rounded-lg border bg-white px-1 py-2 text-center font-display text-lg font-bold leading-none transition-colors {{ $fv->shopStock() <= 0 ? 'text-[#9CA3AF]' : '' }}"
                             :class="sel === {{ $fv->id }} ? 'border-[#16181B] ring-1 ring-[#16181B]' : 'border-[#16181B]/15 hover:border-[#16181B]/40'">{{ $fv->packLabel() }}</button>
                 @endforeach
             </div>

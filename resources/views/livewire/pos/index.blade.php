@@ -15,7 +15,7 @@
 
         <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             @forelse ($results as $p)
-                @php $out = (float) $p->stock_qty <= 0; @endphp
+                @php $out = (float) $p->stock_qty <= 0 && ! $p->sourced; $near = (float) $p->stock_qty <= 0 && $p->sourced; @endphp
                 <button type="button" wire:key="pp{{ $p->id }}" wire:click="add({{ $p->id }})" @disabled($out)
                         class="card flex flex-col items-start p-4 text-left transition {{ $out ? 'cursor-not-allowed opacity-50' : 'hover:-translate-y-0.5 hover:shadow-md hover:ring-2 hover:ring-ink-900' }}">
                     <span class="font-mono text-[10px] text-ink-400">{{ $p->sku }}{{ $p->oem_no ? ' · '.$p->oem_no : '' }}</span>
@@ -23,8 +23,8 @@
                     <span class="text-xs text-ink-500">{{ $p->brand }}</span>
                     <div class="mt-3 flex w-full items-end justify-between">
                         <span class="text-base font-extrabold text-ink-900">{{ amount($p->selling_price) }}</span>
-                        <span class="text-xs font-semibold {{ $out ? 'text-brand-600' : ($p->isLow() ? 'text-amber-600' : 'text-ink-500') }}">
-                            {{ $out ? 'Out of stock' : rtrim(rtrim(number_format($p->stock_qty, 2), '0'), '.').' '.$p->unit }}
+                        <span class="text-xs font-semibold {{ $out ? 'text-brand-600' : ($near ? 'text-sky-700' : ($p->isLow() ? 'text-amber-600' : 'text-ink-500')) }}">
+                            {{ $out ? 'Out of stock' : ($near ? 'From '.($p->sourceSupplier?->name ?? 'supplier') : null) }}{{ $out || $near ? '' : rtrim(rtrim(number_format($p->stock_qty, 2), '0'), '.').' '.$p->unit }}
                         </span>
                     </div>
                 </button>
@@ -93,7 +93,7 @@
                                 @else
                                     <span>@ {{ amount($l['rate']) }}</span>
                                 @endif
-                                <span class="ml-1">· {{ rtrim(rtrim(number_format($l['stock'], 2), '0'), '.') }} in stock</span>
+                                <span class="ml-1">· {{ rtrim(rtrim(number_format($l['stock'], 2), '0'), '.') }} in stock @if (($l['sourced'] ?? false) && $l['qty'] > $l['stock']) <span class="font-semibold text-sky-700">· {{ rtrim(rtrim(number_format($l['qty'] - max(0, $l['stock']), 2), '0'), '.') }} from {{ $l['supplier'] ?? 'supplier' }}</span>@endif</span>
                             </div>
                         </div>
                         <div class="flex items-center rounded-lg ring-1 ring-ink-200">

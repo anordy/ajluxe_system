@@ -94,8 +94,8 @@ class Dashboard extends Component
 
         $counts = [
             'workshop'   => array_sum(array_column($workshop, 'value')),
-            'low'        => DB::table('parts')->whereNull('deleted_at')->where('is_active', true)->where('reorder_level', '>', 0)->whereColumn('stock_qty', '<=', 'reorder_level')->count(),
-            'out'        => DB::table('parts')->whereNull('deleted_at')->where('is_active', true)->where('stock_qty', '<=', 0)->count(),
+            'low'        => DB::table('parts')->whereNull('deleted_at')->where('is_active', true)->where('sourced', false)->where('reorder_level', '>', 0)->whereColumn('stock_qty', '<=', 'reorder_level')->count(),
+            'out'        => DB::table('parts')->whereNull('deleted_at')->where('is_active', true)->where('sourced', false)->where('stock_qty', '<=', 0)->count(),
             'newOrders'  => DB::table('orders')->where('status', 'pending')->count(),
             'salesToday' => DB::table('invoices')->whereNull('deleted_at')->where('status', '!=', 'cancelled')->where('type', 'counter')->whereDate('date', today())->count(),
             'shopToday'  => (float) DB::table('invoices')->whereNull('deleted_at')->where('status', '!=', 'cancelled')->where('type', 'counter')->whereDate('date', today())->sum('grand_total'),

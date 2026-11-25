@@ -50,7 +50,7 @@ class Index extends Component
         }
         $key = (string) $p->id;
         $inCart = (float) ($this->cart[$key]['qty'] ?? 0);
-        if ($inCart + 1 > (float) $p->stock_qty + 0.0001) {
+        if (! $p->sourced && $inCart + 1 > (float) $p->stock_qty + 0.0001) {
             $this->toast("No more {$p->name} in stock.", 'error');
 
             return;
@@ -60,7 +60,7 @@ class Index extends Component
         } else {
             $this->cart[$key] = [
                 'part_id' => $p->id, 'name' => $p->name, 'sku' => $p->sku, 'unit' => $p->unit,
-                'qty' => 1, 'rate' => (float) $p->selling_price, 'stock' => (float) $p->stock_qty, 'min' => (float) $p->min_selling_price,
+                'qty' => 1, 'rate' => (float) $p->selling_price, 'stock' => (float) $p->stock_qty, 'sourced' => (bool) $p->sourced, 'supplier' => $p->sourced ? $p->sourceSupplier?->name : null, 'min' => (float) $p->min_selling_price,
             ];
         }
         $this->lastSaleId = null;
@@ -92,8 +92,9 @@ class Index extends Component
 
             return;
         }
-        $stock = (float) Part::whereKey($key)->value('stock_qty');
-        if ($qty > $stock + 0.0001) {
+        $part = Part::whereKey($key)->first(['id', 'stock_qty', 'sourced']);
+        $stock = (float) $part?->stock_qty;
+        if (! $part?->sourced && $qty > $stock + 0.0001) {
             $qty = $stock;
             $this->toast('Only '.rtrim(rtrim(number_format($stock, 2), '0'), '.').' in stock.', 'error');
         }
@@ -199,7 +200,8 @@ class Index extends Component
         $term = trim($this->search);
         $results = Part::active()
             ->when($term !== '', fn ($q) => $q->search($term), fn ($q) => $q->where('stock_qty', '>', 0)->latest('updated_at'))
-            ->orderByRaw('stock_qty <= 0')->orderBy('name')
+            ->with('sourceSupplier:id,name')
+            ->orderByRaw('(stock_qty <= 0 AND sourced = 0)')->orderBy('name')
             ->limit(12)->get();
 
         return view('livewire.pos.index', [

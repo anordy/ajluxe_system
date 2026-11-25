@@ -126,7 +126,7 @@ class Index extends Component
         } else {
             $rows = Part::query()->search($this->search)
                 ->when($this->filter === 'low', fn ($q) => $q->lowStock())
-                ->when($this->filter === 'out', fn ($q) => $q->where('stock_qty', '<=', 0))
+                ->when($this->filter === 'out', fn ($q) => $q->where('stock_qty', '<=', 0)->where('sourced', false))
                 ->orderBy('name')->paginate(30);
         }
 

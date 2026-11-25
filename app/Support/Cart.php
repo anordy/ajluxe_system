@@ -25,7 +25,7 @@ class Cart
     public static function add(int $partId, int $qty = 1): int
     {
         $part = Part::online()->find($partId);
-        if (! $part || (float) $part->stock_qty <= 0) {
+        if (! $part || $part->shopStock() <= 0) {
             return 0;
         }
         $cart = self::raw();
@@ -40,7 +40,7 @@ class Cart
     {
         $cart = self::raw();
         $part = Part::online()->find($partId);
-        $qty = $part ? min(max(0, $qty), (int) floor((float) $part->stock_qty)) : 0;
+        $qty = $part ? min(max(0, $qty), $part->shopStock()) : 0;
         if ($qty <= 0) {
             unset($cart[$partId]);
         } else {
@@ -78,7 +78,7 @@ class Cart
         return collect($cart)->map(function ($qty, $id) use ($parts) {
             $p = $parts[$id] ?? null;
             $online = $p && $p->is_active && $p->show_online && (float) $p->selling_price > 0;
-            $available = $p ? (int) floor(max(0, (float) $p->stock_qty)) : 0;
+            $available = $p ? $p->shopStock() : 0;
             $price = $p ? $p->salePrice() : 0;
 
             return (object) [

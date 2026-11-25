@@ -21,7 +21,7 @@ class Part extends Model
     protected $fillable = [
         'sku', 'name', 'oem_no', 'brand', 'category', 'unit', 'vehicle_make', 'vehicle_model',
         'rack_location', 'purchase_price', 'selling_price', 'min_selling_price', 'tax_rate', 'reorder_level', 'image_path', 'is_active',
-        'show_online', 'discount_percent', 'web_description', 'subcategory', 'specs', 'variant_of',
+        'show_online', 'sourced', 'source_supplier_id', 'discount_percent', 'web_description', 'subcategory', 'specs', 'variant_of',
     ];
 
     protected function casts(): array
@@ -33,6 +33,7 @@ class Part extends Model
             'min_selling_price' => 'decimal:2',
             'discount_percent'  => 'decimal:2',
             'show_online'       => 'boolean',
+            'sourced'           => 'boolean',
             'specs'             => 'array',
             'tax_rate'       => 'decimal:2',
             'stock_qty'      => 'decimal:2',
@@ -47,7 +48,8 @@ class Part extends Model
 
     public function isLow(): bool
     {
-        return (float) $this->reorder_level > 0 && (float) $this->stock_qty <= (float) $this->reorder_level;
+        // bought-when-sold parts are never "low": we don't keep them on purpose
+        return ! $this->sourced && (float) $this->reorder_level > 0 && (float) $this->stock_qty <= (float) $this->reorder_level;
     }
 
     public function stockValue(): float
@@ -79,6 +81,28 @@ class Part extends Model
     // ---------------------------------------------------------------- website
 
     /** Parts customers can see on the website. */
+    /** How many a bought-from-supplier part shows as available on the website when we hold none. */
+    public const SOURCED_QTY = 10;
+
+    /** Ready to sell online: on our shelf, or bought from its supplier when sold. */
+    public function scopeAvailable(Builder $q): Builder
+    {
+        return $q->where(fn ($w) => $w->where('stock_qty', '>', 0)->orWhere('sourced', true));
+    }
+
+    /** What the website may sell: our stock, or (bought-from-supplier parts) at least SOURCED_QTY. Customers never see the difference. */
+    public function shopStock(): int
+    {
+        $own = (int) floor(max(0, (float) $this->stock_qty));
+
+        return $this->sourced ? max($own, self::SOURCED_QTY) : $own;
+    }
+
+    public function sourceSupplier(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Supplier::class, 'source_supplier_id');
+    }
+
     public function scopeOnline(Builder $q): Builder
     {
         return $q->where('is_active', true)->where('show_online', true)->where('selling_price', '>', 0);
@@ -385,7 +409,7 @@ class Part extends Model
 
     public function scopeLowStock(Builder $q): Builder
     {
-        return $q->where('reorder_level', '>', 0)->whereColumn('stock_qty', '<=', 'reorder_level');
+        return $q->where('sourced', false)->where('reorder_level', '>', 0)->whereColumn('stock_qty', '<=', 'reorder_level');
     }
 
     public function scopeSearch(Builder $q, ?string $term): Builder

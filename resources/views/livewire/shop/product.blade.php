@@ -1,4 +1,4 @@
-@php $stock = (int) floor(max(0, (float) $p->stock_qty)); @endphp
+@php $stock = $p->shopStock(); @endphp
 <div class="wrap pt-8">
     <nav class="text-sm text-[#6B7280]" aria-label="{{ __('Breadcrumb') }}">
         <a href="{{ route('shop.catalog') }}" wire:navigate class="hover:text-[#16181B]">{{ __('Shop') }}</a>

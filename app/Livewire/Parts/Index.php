@@ -88,6 +88,8 @@ class Index extends Component
         $this->form = array_merge(self::blank(), array_map(fn ($v) => $v ?? '', $p->only(array_keys(self::blank()))));
         $this->form['is_active'] = (bool) $p->is_active;
         $this->form['show_online'] = (bool) $p->show_online;
+        $this->form['sourced'] = (bool) $p->sourced;
+        $this->form['source_supplier_id'] = (string) ($p->source_supplier_id ?? '');
         $this->form['specs_text'] = $p->specsText();
         $this->form['subcategory'] = (string) $p->subcategory;
         $this->form['variant_of'] = (string) ($p->variant_of ?? '');
@@ -180,17 +182,27 @@ class Index extends Component
             'form.reorder_level'  => 'nullable|numeric|min:0',
             'form.is_active'      => 'boolean',
             'form.show_online'    => 'boolean',
+            'form.sourced'        => 'boolean',
+            'form.source_supplier_id' => ['nullable', 'required_if_accepted:form.sourced', 'integer', 'exists:suppliers,id'],
             'form.discount_percent' => 'nullable|numeric|min:0|max:90',
             'form.web_description'  => 'nullable|string|max:2000',
             'form.variant_of'       => ['nullable', 'integer', 'exists:parts,id', Rule::notIn(array_filter([$this->editingId]))],
             'opening_qty'         => 'nullable|numeric|min:0',
-        ], ['form.sku.unique' => 'Another part already uses this SKU / part code.', 'form.min_selling_price.lte' => 'The minimum price cannot be above the selling price.']);
+        ], ['form.sku.unique' => 'Another part already uses this SKU / part code.', 'form.min_selling_price.lte' => 'The minimum price cannot be above the selling price.', 'form.source_supplier_id.required_if_accepted' => 'Pick the supplier you buy this part from.']);
 
         $data = collect($this->form)->map(fn ($v) => $v === '' ? null : $v)->all();
         foreach (['purchase_price', 'selling_price', 'min_selling_price', 'discount_percent', 'tax_rate', 'reorder_level'] as $n) {
             $data[$n] = (float) ($data[$n] ?? 0);
         }
         $data['unit'] ??= 'Pcs';
+        $data['sourced'] = (bool) ($data['sourced'] ?? false);
+        if (! $data['sourced']) {
+            $data['source_supplier_id'] = null;
+        } elseif ((float) $data['purchase_price'] <= 0) {
+            $this->addError('form.purchase_price', 'Enter what the supplier charges you, so profit is right.');
+
+            return;
+        }
         // another size of a product always points at the main part (never a chain), and a main part cannot become a size
         if ($data['variant_of'] ?? null) {
             $main = Part::find($data['variant_of']);
@@ -289,7 +301,7 @@ class Index extends Component
             'sku' => '', 'name' => '', 'oem_no' => '', 'brand' => '', 'category' => '', 'subcategory' => '', 'specs_text' => '', 'unit' => 'Pcs',
             'vehicle_make' => '', 'vehicle_model' => '', 'rack_location' => '', 'purchase_price' => '',
             'selling_price' => '', 'min_selling_price' => '', 'tax_rate' => '', 'reorder_level' => '', 'is_active' => true,
-            'show_online' => true, 'discount_percent' => '', 'web_description' => '', 'variant_of' => '',
+            'show_online' => true, 'sourced' => false, 'source_supplier_id' => '', 'discount_percent' => '', 'web_description' => '', 'variant_of' => '',
         ];
     }
 
@@ -299,10 +311,11 @@ class Index extends Component
             ->search($this->search)
             ->when($this->category, fn ($q) => $q->where('category', $this->category))
             ->when($this->stock === 'low', fn ($q) => $q->lowStock())
-            ->when($this->stock === 'out', fn ($q) => $q->where('stock_qty', '<=', 0))
+            ->when($this->stock === 'out', fn ($q) => $q->where('stock_qty', '<=', 0)->where('sourced', false))
+            ->when($this->stock === 'sourced', fn ($q) => $q->where('sourced', true))
             ->when($this->status === 'active', fn ($q) => $q->where('is_active', true))
             ->when($this->status === 'inactive', fn ($q) => $q->where('is_active', false))
-            ->with('fitments.carModel')
+            ->with('fitments.carModel', 'sourceSupplier:id,name')
             ->orderBy('name')
             ->paginate(25);
 
@@ -323,6 +336,7 @@ class Index extends Component
             'categories' => list_options('part_category'),
             'brands'     => list_options('part_brand'),
             'units'      => list_options('unit'),
+            'suppliers'  => \App\Models\Supplier::where('is_active', true)->orderBy('name')->get(['id', 'name']),
             'makes'      => list_options('vehicle_make'),
             'lowCount'   => Part::active()->lowStock()->count(),
             'totals'     => $totals,

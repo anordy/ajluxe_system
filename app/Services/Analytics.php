@@ -36,8 +36,14 @@ class Analytics
         foreach (array_chunk($ids, 500) as $chunk) {
             $online = DB::table('orders')->whereIn('invoice_id', $chunk)->pluck('invoice_id')->flip();
             $lines = DB::table('invoice_items')->whereIn('invoice_id', $chunk)
-                ->selectRaw('invoice_id, CASE WHEN part_id IS NOT NULL THEN 1 ELSE 0 END as is_part, sum(amount) as amount, sum(COALESCE(stock_cost, cost)) as cost, sum(cost) as shop_cost')
+                ->selectRaw('invoice_id, CASE WHEN part_id IS NOT NULL THEN 1 ELSE 0 END as is_part, sum(amount) as amount, sum(COALESCE(stock_cost, cost)) as cost, sum(cost) as shop_cost, '
+                    .'sum(CASE WHEN qty > 0 THEN amount * sourced_qty / qty ELSE 0 END) as src_amount, '
+                    .'sum(CASE WHEN qty > 0 THEN COALESCE(stock_cost, cost) * sourced_qty / qty ELSE 0 END) as src_cost')
                 ->groupBy('invoice_id', 'is_part')->get()->groupBy('invoice_id');
+            // bought-when-sold quantities, per supplier
+            $bySup = DB::table('invoice_items')->whereIn('invoice_id', $chunk)->where('sourced_qty', '>', 0)->where('qty', '>', 0)
+                ->selectRaw('invoice_id, source_supplier_id as sup, sum(amount * sourced_qty / qty) as rev, sum(COALESCE(stock_cost, cost) * sourced_qty / qty) as cost')
+                ->groupBy('invoice_id', 'source_supplier_id')->get()->groupBy('invoice_id');
 
             foreach (DB::table('invoices')->whereIn('id', $chunk)->get(['id', 'type', 'subtotal', 'discount', 'grand_total', 'status']) as $inv) {
                 $l = $lines[$inv->id] ?? collect();
@@ -52,6 +58,8 @@ class Analytics
                 $otherCost = (float) ($other->cost ?? 0);
                 // garage invoices: parts are bought from the shop at its selling price
                 $partsShop = $inv->type === 'garage' ? (float) ($parts->shop_cost ?? 0) : 0;
+                // parts bought from a supplier for this sale
+                $srcRev = (float) ($parts->src_amount ?? 0) * $keep;
 
                 $this->invoices[$inv->id] = [
                     'channel'   => $inv->type === 'garage' ? 'garage' : (isset($online[$inv->id]) ? 'online' : 'shop'),
@@ -59,6 +67,8 @@ class Analytics
                     'cancelled' => $inv->status === Invoice::CANCELLED,
                     'partsRev'  => $partsRev, 'partsProfit' => $partsRev - $partsCost,
                     'otherRev'  => $otherRev, 'otherProfit' => $otherRev - $otherCost,
+                    'srcRev'    => $srcRev, 'srcProfit' => $srcRev - (float) ($parts->src_cost ?? 0),
+                    'srcBy'     => ($bySup[$inv->id] ?? collect())->mapWithKeys(fn ($r) => [(int) $r->sup => [(float) $r->rev * $keep, (float) $r->rev * $keep - (float) $r->cost]])->all(),
                     'partsShop' => $partsShop, 'partsShopProfit' => $partsShop > 0 ? $partsShop - $partsCost : 0,
                 ];
             }
@@ -95,6 +105,9 @@ class Analytics
                 'partsSales'  => $f ? $f['partsRev'] * $share : 0,
                 'partsProfit' => $f ? $f['partsProfit'] * $share : 0,
                 'otherSales'  => $f ? $f['otherRev'] * $share : 0,
+                'sourcedSales'  => $f ? $f['srcRev'] * $share : 0,
+                'sourcedProfit' => $f ? $f['srcProfit'] * $share : 0,
+                'sourcedBy'     => $f ? array_map(fn ($v) => [$v[0] * $share, $v[1] * $share], $f['srcBy']) : [],
                 'otherProfit' => $f ? $f['otherProfit'] * $share : 0,
                 // the two businesses on their own
                 'garageValue'  => $garage ? $amount : 0,
@@ -171,6 +184,17 @@ class Analytics
         }
 
         $garageRows = $rows->where('channel', 'garage');
+        // spare parts sold in the shop and online: from our own shelf vs bought from suppliers when sold
+        $sold = $all->whereIn('channel', ['shop', 'online']);
+        $srcSales = $sold->sum('sourcedSales');
+        $srcProfit = $sold->sum('sourcedProfit');
+        $perSup = [];
+        foreach ($sold as $r) {
+            foreach ($r['sourcedBy'] as $sid => [$sales, $profit]) {
+                $perSup[$sid] = [($perSup[$sid][0] ?? 0) + $sales, ($perSup[$sid][1] ?? 0) + $profit];
+            }
+        }
+        $names = DB::table('suppliers')->whereIn('id', array_keys($perSup))->pluck('name', 'id');
 
         return [
             'business'    => $business,
@@ -183,6 +207,12 @@ class Analytics
             'partsBy'     => array_intersect_key($by('partsSales'), self::CHANNELS),
             'partsProfitBy' => $by('partsProfit'),
             'partsSales'  => round($rows->sum('partsSales'), 2),
+            'supply'      => [
+                'own'     => ['sales' => round($sold->sum('partsSales') - $srcSales, 2), 'profit' => round($sold->sum('partsProfit') - $srcProfit, 2)],
+                'suppliers' => ['sales' => round($srcSales, 2), 'profit' => round($srcProfit, 2)],
+                'bySupplier' => collect($perSup)->map(fn ($v, $sid) => ['name' => $names[$sid] ?? 'Supplier', 'sales' => round($v[0], 2), 'profit' => round($v[1], 2)])
+                    ->sortByDesc('sales')->values()->all(),
+            ],
             'labourSales' => round($garageRows->sum('otherSales'), 2),
             'labourProfit' => round($garageRows->sum('otherProfit'), 2),
             'garagePartsSales' => round($garageRows->sum('partsSales'), 2),

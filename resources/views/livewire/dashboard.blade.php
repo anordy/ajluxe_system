@@ -139,6 +139,35 @@
 
             @endif
 
+            @if ($business !== 'garage')
+                {{-- spare parts: from our own shelf vs bought from suppliers' shops when sold --}}
+                @php
+                    $sup = $n['supply'];
+                    $pct = fn ($r) => $r['sales'] > 0 ? ' · '.round($r['profit'] / $r['sales'] * 100).'%' : '';
+                    $supTotal = $sup['own']['sales'] + $sup['suppliers']['sales'];
+                    $supRows = [
+                        ['label' => 'From our stock', 'value' => max(0, $sup['own']['sales']), 'display' => money($sup['own']['sales']), 'sub' => money($sup['own']['profit']).' profit'.$pct($sup['own'])],
+                        ['label' => 'From suppliers', 'value' => max(0, $sup['suppliers']['sales']), 'display' => money($sup['suppliers']['sales']), 'sub' => money($sup['suppliers']['profit']).' profit'.$pct($sup['suppliers'])],
+                    ];
+                    $shopRows = array_map(fn ($r) => ['label' => $r['name'], 'value' => max(0, $r['sales']), 'display' => money($r['sales']), 'sub' => money($r['profit']).' profit'.$pct($r)], $sup['bySupplier']);
+                @endphp
+                <div class="card p-5">
+                    <h3 class="card-title mb-1">Our stock vs suppliers</h3>
+                    <p class="mb-4 text-xs text-ink-400">Spare parts paid for in the shop and online · "suppliers" are parts bought from a supplier's shop only when they sold</p>
+                    @if ($supTotal != 0)
+                        <div class="grid gap-6 lg:grid-cols-2">
+                            <x-bar-list :rows="$supRows" color="#eb6834" />
+                            <div>
+                                <p class="mb-2 text-xs font-semibold text-ink-500">By supplier</p>
+                                <x-bar-list :rows="$shopRows" color="#52514e" empty="Nothing bought from suppliers in this period." />
+                            </div>
+                        </div>
+                    @else
+                        <p class="py-6 text-center text-sm text-ink-400">No spare parts paid for in this period.</p>
+                    @endif
+                </div>
+            @endif
+
             {{-- best sellers --}}
             <div class="grid gap-6 {{ $business === 'all' ? 'lg:grid-cols-2' : 'lg:grid-cols-2 xl:grid-cols-3' }}">
                 @if ($business !== 'garage')

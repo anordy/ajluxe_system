@@ -193,7 +193,7 @@ class Catalog extends Component
             ->when($groupTypes, fn ($q) => $q->whereIn('subcategory', $groupTypes))
             ->fits($this->make ?: null, $this->model ?: null, ctype_digit($this->engine) ? (int) $this->engine : null)
             ->when($this->deals, fn ($q) => $q->where('discount_percent', '>', 0))
-            ->when($this->instock, fn ($q) => $q->where('stock_qty', '>', 0));
+            ->when($this->instock, fn ($q) => $q->available());
 
         // tyre size from the finder: "205/55 R16" with any part left open
         $sizeScope = clone $scope;
@@ -229,7 +229,7 @@ class Catalog extends Component
         $parts = $filtered(clone $scope)->with('fitments.carModel')
             ->when($this->type, fn ($q) => $q->where('subcategory', $this->type))
             ->when(! $bySize, fn ($q) => $q->listed())
-            ->orderByRaw('CASE WHEN stock_qty > 0 THEN 0 ELSE 1 END')
+            ->orderByRaw('CASE WHEN stock_qty > 0 OR sourced = 1 THEN 0 ELSE 1 END')
             ->when($this->sort === 'price_low', fn ($q) => $q->orderByRaw($priceSql.' asc'))
             ->when($this->sort === 'price_high', fn ($q) => $q->orderByRaw($priceSql.' desc'))
             ->when($this->sort === 'name', fn ($q) => $q->orderBy('name'))

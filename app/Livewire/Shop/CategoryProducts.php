@@ -46,7 +46,7 @@ class CategoryProducts extends Component
 
     private function base()
     {
-        return Part::online()->listed()->where('stock_qty', '>', 0);
+        return Part::online()->listed()->available();
     }
 
     public function render()

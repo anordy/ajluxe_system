@@ -38,8 +38,8 @@ class OrderManager
             // re-check stock under a lock so two customers cannot both take the last item
             $parts = Part::whereIn('id', $lines->pluck('part.id'))->lockForUpdate()->get()->keyBy('id');
             foreach ($lines as $l) {
-                if ($l->qty > (float) $parts[$l->part->id]->stock_qty) {
-                    throw new BusinessRuleException("{$l->part->name}: only ".(int) $parts[$l->part->id]->stock_qty.' left. Update your cart.');
+                if ($l->qty > $parts[$l->part->id]->shopStock()) {
+                    throw new BusinessRuleException("{$l->part->name}: only ".$parts[$l->part->id]->shopStock().' left. Update your cart.');
                 }
             }
             $totals = Cart::totals($lines);
