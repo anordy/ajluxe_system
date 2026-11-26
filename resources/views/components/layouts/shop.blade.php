@@ -56,7 +56,7 @@
     <header x-data="{ menu: false }" class="sticky top-0 z-30 bg-[#16181B] text-white shadow-[0_1px_0_rgba(255,255,255,.08)]">
         <div class="wrap flex h-[68px] items-center gap-3 lg:gap-6">
             <a href="{{ route('shop.home') }}" wire:navigate class="flex shrink-0 items-center gap-3" aria-label="{{ __(':name home', ['name' => setting('business_name')]) }}">
-                <span class="rounded-md bg-white px-2.5 py-1.5"><img src="{{ logo_url() }}" alt="" class="h-9 w-auto"></span>
+                @if ($darkLogo = logo_dark_url()) <img src="{{ $darkLogo }}" alt="" class="h-11 w-auto"> @else <span class="rounded-md bg-white px-2.5 py-1.5"><img src="{{ logo_url() }}" alt="" class="h-9 w-auto"></span> @endif
             </a>
 
             <form action="{{ route('shop.catalog') }}" method="GET" class="hidden flex-1 md:flex" role="search">
@@ -164,7 +164,7 @@
     <footer class="mt-20 bg-[#16181B] text-white/70">
         <div class="wrap grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-12">
             <div class="lg:col-span-4">
-                <span class="inline-flex rounded-md bg-white p-2"><img src="{{ logo_url() }}" alt="{{ setting('business_name') }}" class="h-10"></span>
+                @if (logo_dark_url()) <img src="{{ logo_dark_url() }}" alt="{{ setting('business_name') }}" class="h-12 w-auto"> @else <span class="inline-flex rounded-md bg-white p-2"><img src="{{ logo_url() }}" alt="{{ setting('business_name') }}" class="h-10"></span> @endif
                 <p class="mt-4 max-w-sm text-sm leading-relaxed">{{ webtext('business_tagline') }}</p>
                 <ul class="mt-5 space-y-1.5 text-sm">
                     @if (setting('address')) <li>{{ setting('address') }}</li> @endif

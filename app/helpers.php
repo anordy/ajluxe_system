@@ -68,6 +68,14 @@ if (! function_exists('logo_url')) {
     }
 }
 
+if (! function_exists('logo_dark_url')) {
+    /** Red-and-white logo with no background, for dark headers. Null when a custom logo was uploaded (that one keeps its white box). */
+    function logo_dark_url(): ?string
+    {
+        return Settings::get('logo_path') ? null : asset('images/logo-dark.png').'?v=1';
+    }
+}
+
 if (! function_exists('list_options')) {
     /** list_options('payment_mode') -> ['Cash', 'M-Pesa', ...] */
     function list_options(string $list): array
