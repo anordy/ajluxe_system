@@ -68,6 +68,17 @@ if (! function_exists('logo_url')) {
     }
 }
 
+if (! function_exists('shop_route')) {
+    /** Link to a public website page that always points at the website's own address (APP_URL),
+     *  also when made from the staff portal on dashboard.… */
+    function shop_route(string $name, mixed $parameters = []): string
+    {
+        $base = rtrim((string) config('app.url'), '/');
+
+        return ($base !== '' ? $base : url('/')).route($name, $parameters, false);
+    }
+}
+
 if (! function_exists('logo_dark_url')) {
     /** Red-and-white logo with no background, for dark headers. Null when a custom logo was uploaded (that one keeps its white box). */
     function logo_dark_url(): ?string

@@ -1,7 +1,7 @@
 <div class="space-y-5">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         <p class="text-sm text-ink-500">Headings and short texts on the website. Phone, address, opening hours, payment details and logo are in <b>Settings</b>; parts, prices and pictures come from the <b>Parts Catalogue</b>. Visitors who choose Swahili see the Swahili box; when it is empty they see the English text.</p>
-        <a href="{{ route('shop.home') }}" target="_blank" class="btn-light shrink-0 sm:ml-auto">Open the website</a>
+        <a href="{{ shop_route('shop.home') }}" target="_blank" class="btn-light shrink-0 sm:ml-auto">Open the website</a>
     </div>
 
     <form wire:submit="save" class="card divide-y divide-ink-100">

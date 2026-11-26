@@ -12,7 +12,7 @@
             <x-icon name="search" class="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-ink-300" />
             <input type="search" wire:model.live.debounce.300ms="search" class="input pl-9" placeholder="Order no, customer, phone…">
         </div>
-        <a href="{{ route('shop.home') }}" target="_blank" class="btn-light sm:ml-auto">Open the website</a>
+        <a href="{{ shop_route('shop.home') }}" target="_blank" class="btn-light sm:ml-auto">Open the website</a>
     </div>
 
     <div class="card overflow-hidden">

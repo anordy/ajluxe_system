@@ -29,9 +29,6 @@ class Launch
 
     public static function previewUrl(): string
     {
-        $host = config('ajluxe.admin_domain') ? preg_replace('/^dashboard\./', '', config('ajluxe.admin_domain')) : null;
-        $base = $host ? 'https://'.$host : url('/');
-
-        return rtrim($base, '/').'/?preview='.self::previewKey();
+        return shop_route('shop.home').'?preview='.self::previewKey();
     }
 }

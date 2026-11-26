@@ -369,7 +369,7 @@
         @endif
         <x-slot:footer>
             @if ($viewPart)
-                @if ($viewPart->show_online) <a href="{{ route('shop.product', [$viewPart, $viewPart->slug()]) }}" target="_blank" class="btn-light mr-auto">See on website</a> @endif
+                @if ($viewPart->show_online) <a href="{{ shop_route('shop.product', [$viewPart, $viewPart->slug()]) }}" target="_blank" class="btn-light mr-auto">See on website</a> @endif
                 <button type="button" class="btn-light" @click="open = false">Close</button>
                 @if ($this->canManage()) <button type="button" class="btn-primary" wire:click="editFromView({{ $viewPart->id }})">Edit</button> @endif
             @endif

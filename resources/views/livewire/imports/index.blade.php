@@ -1,7 +1,7 @@
 <div class="space-y-5">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         <p class="text-sm text-ink-500">Custom orders from <b>Import for you</b> on the website. Send a price, record the deposit, and update the status: customers with an account see it there.</p>
-        <a href="{{ route('shop.import') }}" target="_blank" class="btn-light shrink-0 sm:ml-auto">Open the page</a>
+        <a href="{{ shop_route('shop.import') }}" target="_blank" class="btn-light shrink-0 sm:ml-auto">Open the page</a>
     </div>
 
     <div class="flex gap-2 overflow-x-auto pb-1">

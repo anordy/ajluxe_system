@@ -3,7 +3,7 @@
         <p class="text-sm text-ink-500">The scrolling ads at the top of the website home page, shown in this order. While no banner is switched on, the website makes offers from your stock by itself.</p>
         @if ($this->canManage())
             <div class="flex shrink-0 gap-2 sm:ml-auto">
-                <a href="{{ route('shop.home') }}" target="_blank" class="btn-light">Open the website</a>
+                <a href="{{ shop_route('shop.home') }}" target="_blank" class="btn-light">Open the website</a>
                 <button class="btn-primary" wire:click="create"><x-icon name="plus" class="h-4 w-4" /> New Banner</button>
             </div>
         @endif
