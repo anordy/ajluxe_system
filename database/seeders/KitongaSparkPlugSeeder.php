@@ -2,11 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\CarModel;
-use App\Models\Part;
-use App\Models\PartVehicle;
-use App\Models\Supplier;
-use App\Support\Numbering;
+use Database\Seeders\Concerns\KitongaSupplier;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -15,16 +11,20 @@ use Illuminate\Support\Facades\DB;
  *
  * They are added as "buy from supplier when sold" parts: on the website as normal stock,
  * no stock and no stock value here, bought from Kitonga only when they sell.
+ * Prices on the list: Kitonga's buying and selling price. Ours = their selling price + 15 %.
+ * Plugs without a picture get the spark plug photo; a picture already on a plug is kept.
  * Safe to run again: existing rows (same part number from Kitonga) are updated, not doubled.
  *
  *   php artisan db:seed --class=KitongaSparkPlugSeeder --force
  */
 class KitongaSparkPlugSeeder extends Seeder
 {
+    use KitongaSupplier;
+
     public const SUPPLIER = 'Kitonga Spareparts';
 
     /**
-     * [part number, brand, name, fits as written on the list, [[make, model], …] for the car finder, buying, selling, pack]
+     * [part number, brand, name, fits as written on the list, [[make, model], …] for the car finder, Kitonga buying, Kitonga selling, pack]
      * Brand: Toyota 90919-… numbers and the IK/VK/IXU iridium codes are Denso; Nissan 22401-5M015 is NGK.
      */
     private const ROWS = [
@@ -57,49 +57,20 @@ class KitongaSparkPlugSeeder extends Seeder
     public function run(): void
     {
         DB::transaction(function () {
-            $supplier = Supplier::firstOrCreate(['name' => self::SUPPLIER], ['code' => Numbering::code('supplier', 'SUP'), 'is_active' => true]);
-            $added = $updated = 0;
-
+            $supplier = $this->kitonga();
+            $photo = $this->photo('kitonga-spark-plug.jpg');       // only for plugs without a picture yet
             foreach (self::ROWS as [$no, $brand, $name, $fits, $cars, $buy, $sell, $pack]) {
                 $makes = collect($cars)->pluck(0)->unique();
-                $values = [
+                $this->upsert($supplier, $no, [
                     'name' => $name, 'brand' => $brand, 'category' => 'Car Parts', 'subcategory' => 'Spark Plugs',
-                    'unit' => 'Pcs', 'purchase_price' => $buy, 'selling_price' => $sell,
+                    'purchase_price' => $buy, 'selling_price' => $this->ourPrice($buy, $sell),
                     'vehicle_make' => $makes->count() === 1 ? $makes->first() : null,
                     'vehicle_model' => $fits,
                     'specs' => array_filter(['Part number' => $no, 'Brand' => $brand, 'Fits' => $fits, 'Pack' => $pack ? $pack.' plugs' : null]),
-                    'is_active' => true, 'show_online' => true,
-                    'sourced' => true, 'source_supplier_id' => $supplier->id,   // bought from Kitonga when sold: no stock here
-                ];
-
-                $part = Part::where('oem_no', $no)->where('source_supplier_id', $supplier->id)->first();
-                if ($part) {
-                    $part->update($values);
-                    $updated++;
-                } else {
-                    $part = Part::create($values + ['oem_no' => $no, 'sku' => $this->freeSku()]);
-                    $added++;
-                }
-
-                // link to the website's car finder where the car is on the car list
-                $ids = collect($cars)->map(fn ($c) => CarModel::where('make', $c[0])->where('model', $c[1])->value('id'))->filter()->unique();
-                PartVehicle::where('part_id', $part->id)->whereNull('car_engine_id')->whereNotIn('car_model_id', $ids)->delete();
-                foreach ($ids as $id) {
-                    PartVehicle::firstOrCreate(['part_id' => $part->id, 'car_model_id' => $id, 'car_engine_id' => null]);
-                }
+                    'image_path' => $photo,
+                ], $cars);
             }
-
-            $this->command?->info(self::SUPPLIER.": {$added} spark plugs added, {$updated} updated (no stock added).");
+            $this->command?->info('Kitonga Spareparts: '.count(self::ROWS).' spark plugs added or updated (no stock added, price +15%).');
         });
-    }
-
-    /** Next PRT-00000 number that is not already taken (old imported parts may use some). */
-    private function freeSku(): string
-    {
-        do {
-            $sku = Numbering::code('part', 'PRT', 5);
-        } while (Part::withTrashed()->where('sku', $sku)->exists());
-
-        return $sku;
     }
 }
