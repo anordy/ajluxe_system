@@ -67,10 +67,15 @@
     <div x-show="sidebar" x-cloak x-transition.opacity class="fixed inset-0 z-30 bg-ink-950/50 lg:hidden" @click="sidebar = false"></div>
     <aside class="fixed inset-y-0 left-0 z-40 flex w-64 print:hidden -translate-x-full flex-col bg-ink-950 transition-transform lg:translate-x-0"
            :class="sidebar && '!translate-x-0'">
-        <a href="{{ route('dashboard') }}" wire:navigate class="flex h-16 items-center border-b border-white/5 px-3">
-            <span class="flex h-12 w-full items-center justify-center rounded-lg bg-white px-3">
-                <img src="{{ logo_url() }}" alt="{{ setting('business_name') }}" class="max-h-10 w-full object-contain">
-            </span>
+        <a href="{{ route('dashboard') }}" wire:navigate class="flex h-16 items-center border-b border-white/5 px-4">
+            @if (logo_dark_url())
+                {{-- one-line version: fills the bar from left to right without making it taller --}}
+                <img src="{{ asset('images/logo-dark-wide.png') }}?v=1" alt="{{ setting('business_name') }}" class="block h-auto w-full">
+            @else
+                <span class="flex h-12 w-full items-center justify-center rounded-lg bg-white px-3">
+                    <img src="{{ logo_url() }}" alt="{{ setting('business_name') }}" class="max-h-10 w-full object-contain">
+                </span>
+            @endif
         </a>
 
         <nav class="flex-1 overflow-y-auto px-3 pb-6">

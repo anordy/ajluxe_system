@@ -30,7 +30,7 @@ Route::get('/storage/{path}', function (string $path) {
     return response()->file($file, ['Cache-Control' => 'public, max-age=604800']);
 })->where('path', '.*')->name('storage.public');
 
-Route::name('shop.')->middleware(['shop.host', 'shop.locale'])->group(function () {
+Route::name('shop.')->middleware(['shop.host', 'coming.soon', 'shop.locale'])->group(function () {
     // English / Kiswahili switch in the header; remembered for a year on this device
     Route::get('/language/{lang}', function (Request $request, string $lang) {
         abort_unless(isset(\App\Http\Middleware\SetShopLocale::LOCALES[$lang]), 404);

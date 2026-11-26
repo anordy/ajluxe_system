@@ -7,6 +7,12 @@
     };
     $period = \App\Livewire\Dashboard::RANGES[$range] ?? 'This month';
 @endphp
+@if (\App\Support\Launch::pending() && $user->hasRole('admin', 'manager'))
+    <div class="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <b>Website opens {{ \App\Support\Launch::at()->format('D j M, g:i A') }}.</b> Until then customers see the "coming soon" page with a countdown.
+        <a href="{{ \App\Support\Launch::previewUrl() }}" target="_blank" rel="noopener" class="ml-auto font-semibold underline">Preview the real website</a>
+    </div>
+@endif
 <div class="space-y-6">
     {{-- title + period --}}
     <div class="flex flex-wrap items-end justify-between gap-4">

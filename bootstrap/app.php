@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'account' => \App\Http\Middleware\EnsureAccountUsable::class,
             'shop.locale' => \App\Http\Middleware\SetShopLocale::class,
             'shop.host'   => \App\Http\Middleware\ShopHost::class,
+            'coming.soon' => \App\Http\Middleware\ComingSoon::class,
             'staff.host'  => \App\Http\Middleware\StaffHost::class,
         ]);
         // check the address before anything else, so the public website never even redirects to the staff login

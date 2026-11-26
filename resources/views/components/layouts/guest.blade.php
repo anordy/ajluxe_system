@@ -19,7 +19,7 @@
             <div class="absolute -right-24 -top-24 h-96 w-96 rounded-full border-[40px] border-brand-500/10"></div>
             <div class="absolute -bottom-32 -left-20 h-[28rem] w-[28rem] rounded-full border-[48px] border-white/[0.03]"></div>
             <div class="relative">
-                <span class="inline-flex rounded-xl bg-white px-4 py-3"><img src="{{ logo_url() }}" alt="{{ setting('business_name') }}" class="h-12"></span>
+                @if (logo_dark_url()) <img src="{{ logo_dark_url() }}" alt="{{ setting('business_name') }}" class="h-16 w-auto"> @else <span class="inline-flex rounded-xl bg-white px-4 py-3"><img src="{{ logo_url() }}" alt="{{ setting('business_name') }}" class="h-12"></span> @endif
             </div>
             <div class="relative max-w-md">
                 <div class="mb-4 h-1 w-16 rounded bg-brand-500"></div>
