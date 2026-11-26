@@ -11,10 +11,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ isset($title) ? $title.' | ' : '' }}{{ setting('business_name') }} — {{ __('Spare parts & garage') }}</title>
     <meta name="description" content="{{ webtext('business_tagline') }}">
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
-    <link rel="icon" type="image/png" href="{{ asset('favicon-32.png') }}" sizes="32x32">
-    <link rel="icon" type="image/png" href="{{ asset('icon-192.png') }}" sizes="192x192">
-    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+    <link rel="icon" href="{{ asset('favicon.ico').'?v=2' }}" sizes="any">
+    <link rel="icon" type="image/png" href="{{ asset('favicon-32.png').'?v=2' }}" sizes="32x32">
+    <link rel="icon" type="image/png" href="{{ asset('icon-192.png').'?v=2' }}" sizes="192x192">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png').'?v=2' }}">
     @vite(['resources/css/shop.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
