@@ -53,6 +53,7 @@
         @keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
     </style>
+    @include('partials.analytics')
 </head>
 <body class="min-h-screen overflow-x-hidden font-sans text-white antialiased">
     <div class="relative flex min-h-screen flex-col overflow-hidden">

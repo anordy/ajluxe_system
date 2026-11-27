@@ -25,6 +25,12 @@
                 <input wire:model="s.opening_hours" class="input" placeholder="Mon – Sat, 8:00 – 18:00">
             </div>
             <div class="sm:col-span-2">
+                <label class="label">Google Analytics Measurement ID (website visits)</label>
+                <input wire:model="s.ga_measurement_id" class="input font-mono" placeholder="G-XXXXXXXXXX">
+                @error('s.ga_measurement_id') <p class="error">{{ $message }}</p> @enderror
+                <p class="mt-1 text-xs text-ink-400">From analytics.google.com › Admin › Data streams › your website. Leave empty to turn tracking off. Only the online shop is counted, not this staff portal.</p>
+            </div>
+            <div class="sm:col-span-2">
                 <label class="label">Address</label>
                 <input wire:model="s.address" class="input" placeholder="Street, area, city">
             </div>

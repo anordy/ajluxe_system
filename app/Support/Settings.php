@@ -40,6 +40,7 @@ class Settings
         'whatsapp'           => '',
         'opening_hours'      => 'Mon – Sat, 8:00 – 18:00',
         'low_stock_alert'  => '1',
+        'ga_measurement_id' => '',   // Google Analytics 4 (G-XXXXXXX); empty = no tracking on the website
 
         // ---- website texts (Admin › Website › Website texts). Lists: one item per line, "Title | text".
         'web_topbar'        => 'Order online, collect the same day at our Mbezi Beach shop',

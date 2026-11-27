@@ -18,7 +18,7 @@ class Edit extends Component
     public ?string $logoData = null;
 
     private const FIELDS = [
-        'business_name', 'business_tagline', 'address', 'phone', 'whatsapp', 'opening_hours', 'email', 'tin', 'vrn',
+        'business_name', 'business_tagline', 'address', 'phone', 'whatsapp', 'opening_hours', 'email', 'tin', 'vrn', 'ga_measurement_id',
         'currency', 'default_tax_rate', 'payment_details', 'invoice_footer', 'print_size',
         'prefix_job_card', 'prefix_invoice', 'prefix_receipt', 'prefix_po',
         'prefix_supplier_payment', 'prefix_credit_note', 'prefix_debit_note',
@@ -43,6 +43,7 @@ class Edit extends Component
             's.phone'            => 'nullable|string|max:80',
             's.whatsapp'         => 'nullable|string|max:20',
             's.opening_hours'    => 'nullable|string|max:120',
+            's.ga_measurement_id' => ['nullable', 'regex:/^\s*G-[A-Z0-9]{4,16}\s*$/i'],
             's.email'            => 'nullable|email|max:120',
             's.tin'              => 'nullable|string|max:40',
             's.vrn'              => 'nullable|string|max:40',
@@ -51,10 +52,11 @@ class Edit extends Component
             's.payment_details'  => 'nullable|string|max:1000',
             's.invoice_footer'   => 'nullable|string|max:500',
             's.print_size'       => 'required|in:A4,4 inch,3 inch',
-        ], [], ['s.business_name' => 'business name']);
+        ], ['s.ga_measurement_id.regex' => 'Paste the Measurement ID from Google Analytics. It starts with G-, for example G-AB12CD34EF.'], ['s.business_name' => 'business name']);
 
         $values = $this->s;
         $values['currency'] = strtoupper(trim($values['currency']));
+        $values['ga_measurement_id'] = strtoupper(trim($values['ga_measurement_id']));
 
         if ($this->logoData) {
             try {

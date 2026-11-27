@@ -17,6 +17,7 @@
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png').'?v=2' }}">
     @vite(['resources/css/shop.css', 'resources/js/app.js'])
     @livewireStyles
+    @include('partials.analytics')
 </head>
 <body class="flex min-h-screen flex-col">
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">{{ __('Skip to content') }}</a>
